@@ -65,3 +65,10 @@ assert.strictEqual(E.guessMeter(p8full).id, 'pheak8');
 console.log('pheak8 full poem passed');
 assert.deepStrictEqual(E.meters.filter(m => m.id === 'phujong')[0].cross.also, [[2, 4]]);
 console.log('phujong cross passed');
+
+// ៗ repeats the syllable before it
+assert.strictEqual(E.analyze('ផ្សេងៗ').lines[0].count, 2);
+assert.strictEqual(E.analyze('ផ្សេង ៗ').lines[0].count, 2);
+assert.strictEqual(E.analyze('តិចៗយឺតៗ').lines[0].count, 4);
+assert.ok(E.analyze('ផ្សេងៗ').lines[0].approx);
+console.log('repetition mark passed');

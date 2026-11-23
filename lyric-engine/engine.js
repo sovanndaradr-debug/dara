@@ -50,6 +50,10 @@
     var cls = clusters(run), syl = [], cur = null;
     for (var k = 0; k < cls.length; k++) {
       var cl = cls[k], next = cls[k + 1];
+      if (cl.base === '\u17D7') {   // ៗ: repeat the previous syllable
+        if (cur) { cur = { text: '\u17D7', base: cur.base, subs: cur.subs.slice(), vowels: cur.vowels, marks: cur.marks, fin: cur.fin, closed: true, approx: true }; syl.push(cur); }
+        continue;
+      }
       if (!isCons(cl.base) && !isIndepVowel(cl.base)) continue;
       var canTakeFinal = cur && !cur.closed;
       var bare = !hasNucleus(cl);
@@ -125,6 +129,7 @@
 
   function lineSyllables(line) {
     var out = [];
+    line = String(line).replace(/[ \t\u00A0\u200B]+\u17D7/g, '\u17D7');
     // split into Khmer runs and other words
     var re = /[ក-៝]+|[A-Za-z']+/g, m;
     while ((m = re.exec(line))) {
@@ -202,10 +207,10 @@
     { id: 'kakagati', name: 'បទកាកគតិ', lines: [4, 4, 4, 4, 4, 4, 4], stress: [2], verified: true, use: 'ចង្វាក់លឿន លោតៗ', tempo: ['fast'],
       links: [{ from: [1, 4], to: [[2, 4]] }, { from: [3, 4], to: [[5, 4]] }, { from: [5, 4], to: [[6, 4]] }],
       cross: { from: [7, 4], to: [3, 4] }, mood: 'ពណ៌នាទីកន្លែង តួអង្គ ធម្មជាតិ ផ្តើមរឿង ពេលខ្លះសម្តែងទុក្ខសោក' },
-    { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [], verified: true, use: 'ការអប់រំ ទូន្មាន បរិយាកាសឧត្តុង្គឧត្តម', tempo: ['festive'],
+    { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [2, 3], stressNote: 'ព្យាង្គ២ ក្នុងឃ្លា៥ព្យាង្គ · ព្យាង្គ៣ ក្នុងឃ្លា៦ព្យាង្គ', verified: true, use: 'ការអប់រំ ទូន្មាន បរិយាកាសឧត្តុង្គឧត្តម', tempo: ['festive'],
       note: 'ប្រភព ៤ (វិគីភីឌា studykhmer learnkhmer24 rosveasna) ថា ៥-៦-៥-៦',
       links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }, { from: [3, 5], to: [[4, 3]] }],
-      cross: { from: [4, 6], to: [2, 6] }, mood: '' },
+      cross: { from: [4, 6], to: [2, 6] }, mood: 'ភាពលន្លង់លន្លោច ទុក្ខសោក ការព្រាត់ប្រាស ប្រដៅ ផ្តែផ្តាំ ការឈឺចាប់' },
     { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true, use: 'ភាពរន្ធត់ តានតឹង ការផ្លាស់ប្តូរភ្ញាក់ផ្អើល Hard Trap', tempo: ['fast', 'drama'],
       links: [{ from: [1, 6], to: [[2, 4]] }],
       cross: { from: [3, 4], to: [1, 6], also: [[2, 4]] }, mood: '' },   // វិគីភីឌា៖ ជួននឹងព្យាង្គ៦ ឃ្លា១ និងព្យាង្គ៤ ឃ្លា២ នៃវគ្គបន្ទាប់
