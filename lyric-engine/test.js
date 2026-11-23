@@ -192,3 +192,8 @@ const rng = E.analyze('ធម្មតាកើតជាមនុស្ស').lin
 assert.strictEqual(rng.count, 7); assert.strictEqual(rng.min, 5);
 assert.strictEqual(E.analyze('ខ្ញុំស្រលាញ់អូន').lines[0].min, E.analyze('ខ្ញុំស្រលាញ់អូន').lines[0].count - 1);
 console.log('count range passed');
+
+// filler words: a hint to re-read for meaning, never a rule
+assert.deepStrictEqual(E.analyze('ចិត្តបងរលែកដូចទឹកថ្ងៃឡើង').lines[0].fillers, ['រលែក', 'ថ្ងៃឡើង']);
+assert.deepStrictEqual(E.analyze('ម៉ោងដប់យប់ហើយ ភ្លៀងក៏រលឹម').lines[0].fillers, []);
+console.log('filler hints passed');

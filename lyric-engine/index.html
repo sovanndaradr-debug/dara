@@ -547,7 +547,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       var minors = visible.filter(function (s) { return s.minor; }).length;   // classical poets may leave minor syllables uncounted
       return { text: raw, syllables: visible.map(function (s) { return { text: s.text, rime: s.rime, vowel: s.vowel, minor: !!s.minor }; }),
                count: syl.length, min: syl.length - minors, approx: syl.some(function (s) { return s.approx; }), endRime: last ? last.rime : null, group: null,
-               techniques: techniques(syl) };
+               techniques: techniques(syl), fillers: fillersIn(raw) };
     });
     // rhyme groups: line endings that share a rime with another line ending
     var byRime = {};
@@ -619,6 +619,14 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     festive: { name: 'ពិធីបុណ្យ ប្រពៃណី អប់រំ', advice: 'ពាក្យមានទម្ងន់ ឆ្លើយឆ្លង លើកទឹកចិត្ត', forms: ['pheak8', 'brahmagiti', 'kakha'] },
     drama: { name: 'ផ្ទុះអារម្មណ៍ខ្លាំង ល្ខោន', advice: 'ទុកចន្លោះផ្អាក ឲ្យភាពស្ងាត់និយាយ', forms: ['pumnol', 'free'] }
   };
+
+  /* Filler words (ពាក្យបំពេញជើងកាព្យ): words often added only to fill a count or close a rhyme.
+     A hint to re-read the line for meaning, never a rule: the engine cannot judge meaning. */
+  var FILLERS = ['រលែក', 'ពិសក្តៅ', 'ពិសក្ដៅ', 'ត្រួតត្រាល់', 'ថ្ងៃឡើង'];
+  function fillersIn(raw) {
+    var t = String(raw || '').replace(/[\s\u200B]+/g, '');
+    return FILLERS.filter(function (w, i) { return t.indexOf(w) >= 0 && FILLERS.indexOf(w.replace('ដ', 'ត')) === i; });
+  }
 
   /* Free verse (កម្រងកែវសេរី) sound techniques the engine can see inside one line.
      ញ៉ែងញ៉ង (twisted rhyme) depends on meaning and humour: the engine cannot judge it. */
@@ -746,7 +754,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     return null;
   }
 
-  root.LyricEngine = { analyze: analyze, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO };
+  root.LyricEngine = { analyze: analyze, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
   if (typeof module !== 'undefined') module.exports = root.LyricEngine;
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
@@ -786,6 +794,11 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       if (l.techniques && l.techniques.length) {
         var tq = document.createElement('p'); tq.className = 'remember'; tq.textContent = 'ក្បាច់សូរ៖ ' + l.techniques.join(' · ');
         li.appendChild(tq);
+      }
+      if (l.fillers && l.fillers.length) {
+        var fl = document.createElement('p'); fl.className = 'remember';
+        fl.textContent = 'ពាក្យបំពេញ? «' + l.fillers.join('» «') + '» — តើវាមានន័យនៅទីនេះ ឬមកតែដើម្បីជួន?';
+        li.appendChild(fl);
       }
       var seen = lessonFor(l.text);
       if (seen) {
