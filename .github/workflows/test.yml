@@ -27,6 +27,7 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-      - run: pip install gradio
+          cache-dependency-path: vo5-studio/requirements.txt
+      - run: pip install -r vo5-studio/requirements.txt
       - name: Music part (fake AceData server, no credits)
         run: python -m unittest vo5-studio/test_live_suno.py

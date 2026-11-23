@@ -10,7 +10,7 @@ Other features are kept but hidden from users until these two parts are polished
 It needs `vo5_master_synchronicity_pipeline.py` (and optionally `vo5_billing_quota_engine.py`) next to it. Those modules are not in this repository.
 
 ```bash
-pip install gradio
+pip install -r vo5-studio/requirements.txt
 export SUNO_API_KEY=...                 # AceData Cloud token; server side only, never typed into the page
 # Suno through AceData Cloud (default base URL https://api.acedata.cloud):
 # POST /suno/audios to create, POST /suno/tasks {"action":"retrieve"} to poll.
