@@ -32,9 +32,6 @@ class _Pipeline:
                 "emotional_intensity": "9.5/10", "suno_instrumental_box1": "ambient tro so drone, 68 BPM",
                 "suno_sounds_loop_prompt": "rain on rocks"}
 
-    @staticmethod
-    def calculate_budget_and_schedule(dna):
-        return [["Crew", "3 days", "1000", ""]], {"shoot_days": 3, "total_physical_usd": 1000}
 
 
 pipe.VO5MasterSynchronicityPipeline = _Pipeline
@@ -107,6 +104,12 @@ def blueprint():
     return live_suno.build_blueprint("INT. ROOM - NIGHT", "", "", "តារា", "", "", "រូបថតចាស់ប្រឡាក់ឈាម")
 
 
+def music(mode="both", gender="male", user="", box2=None, state=None):
+    out = blueprint()
+    st = out[-1] if state is None else state
+    return live_suno.generate_audio(st, out[1], out[2], out[3] if box2 is None else box2, mode, "v6", gender, user)
+
+
 class Tests(unittest.TestCase):
     def setUp(self):
         CALLS.clear(); FakeQuota.log.clear(); FakeSuno.fail_create = False
@@ -131,7 +134,7 @@ class Tests(unittest.TestCase):
 
     def test_both_tracks_and_mp3(self):
         state = blueprint()[-1]
-        status, score_mp3, vocal_mp3, links, js, new_state = live_suno.generate_audio(state, "both", "v6", "female", "")
+        status, score_mp3, vocal_mp3, links, new_state = music("both", "female", state=state)
         self.assertIn("4", status)
         self.assertTrue(score_mp3 and os.path.getsize(score_mp3) > 0)
         self.assertTrue(vocal_mp3 and os.path.getsize(vocal_mp3) > 0)
@@ -142,37 +145,48 @@ class Tests(unittest.TestCase):
         self.assertEqual(state["suno_live_tracks"], [])  # caller's state not mutated
 
     def test_retry_uses_same_idempotency_key(self):
-        state = blueprint()[-1]
-        live_suno.generate_audio(state, "vocal", "v6", "male", "")
-        live_suno.generate_audio(state, "vocal", "v6", "male", "")
+        music("vocal"); music("vocal")
         keys = [c[3] for c in CALLS if c[0] == "POST"]
         self.assertEqual(len(keys), 2); self.assertEqual(keys[0], keys[1])
 
     def test_no_server_key(self):
         os.environ["SUNO_API_KEY"] = ""
-        out = live_suno.generate_audio(blueprint()[-1], "both", "v6", "male", "")
+        out = music()
         self.assertIn("SUNO_API_KEY", out[0]); self.assertEqual(CALLS, [])
 
     def test_quota_needs_a_user(self):
         live_suno.HAS_QUOTA_ENGINE, live_suno.QuotaEnforcerProxy = True, FakeQuota
-        out = live_suno.generate_audio(blueprint()[-1], "both", "v6", "male", "")
+        out = music()
         self.assertIn("⛔", out[0]); self.assertEqual(CALLS, [])
 
     def test_quota_refused(self):
         live_suno.HAS_QUOTA_ENGINE, live_suno.QuotaEnforcerProxy = True, FakeQuota
-        out = live_suno.generate_audio(blueprint()[-1], "both", "v6", "male", "broke@x")
+        out = music(user="broke@x")
         self.assertIn("អស់កូតា", out[0]); self.assertEqual(CALLS, [])
 
     def test_failed_create_is_not_billed(self):
         live_suno.HAS_QUOTA_ENGINE, live_suno.QuotaEnforcerProxy = True, FakeQuota
         FakeSuno.fail_create = True
-        out = live_suno.generate_audio(blueprint()[-1], "both", "v6", "male", "a@x")
+        out = music(user="a@x")
         self.assertIn("មិនបានកាត់កូតា", out[0]); self.assertEqual(FakeQuota.log, [])
 
     def test_success_is_billed_once(self):
         live_suno.HAS_QUOTA_ENGINE, live_suno.QuotaEnforcerProxy = True, FakeQuota
-        live_suno.generate_audio(blueprint()[-1], "both", "v6", "male", "a@x")
+        music(user="a@x")
         self.assertEqual(len(FakeQuota.log), 1); self.assertEqual(FakeQuota.log[0]["user_id"], "a@x")
+
+    def test_pasted_lyrics_are_sung(self):
+        music("vocal", box2="បទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
+        sent = [c[2] for c in CALLS if c[0] == "POST"][0]
+        self.assertEqual(sent["lyrics"], "បទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
+
+    def test_music_works_without_step_one(self):
+        out = live_suno.generate_audio({}, "បទ", "Khmer ballad", "ទំនុកច្រៀង", "vocal", "v6", "male", "")
+        self.assertIn("🎵", out[0])
+
+    def test_empty_lyrics_blocked(self):
+        out = music("vocal", box2="  ")
+        self.assertIn("Box 2", out[0]); self.assertEqual(CALLS, [])
 
     def test_signed_in_user_wins(self):
         req = types.SimpleNamespace(username="real@x")

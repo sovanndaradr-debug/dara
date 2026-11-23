@@ -1,6 +1,11 @@
 # VO5 Studio Pro: script scene to song
 
-`live_suno.py` turns one script scene into a lyric blueprint (Box 1 / Box 2), score cues and a budget, then, **only on its own button**, asks Suno to make the MP3s.
+Two parts (see `lyric-engine/PRODUCT.md`):
+
+1. **ទំនុកច្រៀង (lyrics):** a script scene or story becomes Box 1 (style) and Box 2 (lyrics). This step is free. Both boxes can be edited, so you can paste lyrics you finished in Lyric Engine.
+2. **តន្ត្រី (music):** Suno sings what is in Box 1 and Box 2, or makes a score. This step spends credits, so it only runs when you press its own button.
+
+Screenwriting output and production budgets are out of scope.
 
 It needs `vo5_master_synchronicity_pipeline.py` (and optionally `vo5_billing_quota_engine.py`) next to it. Those modules are not in this repository.
 

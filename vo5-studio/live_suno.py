@@ -4,10 +4,12 @@ VO5 STUDIO PRO — MASTER SYNCHRONICITY PIPELINE + LIVE SUNO MP3 GENERATOR
 Lead Architect : Sovanndara Diep (ឌៀប សុវណ្ណតារា)
 Core Mantra    : "Ink is Value. Story is Soul. Culture is Identity."
 
-Two steps, two buttons (see lyric-engine/PRODUCT.md):
-  1. Script scene -> lyric blueprint (Box 1 / Box 2), score cues, budget.  Free.
-  2. Blueprint -> Suno audio (score and/or vocal MP3).  Spends credits, so it
-     only runs when the user presses its own button.
+Two parts (decision 2026-11-23, see lyric-engine/PRODUCT.md):
+  1. ទំនុកច្រៀង (lyrics): script scene -> Box 1 style + Box 2 lyrics.  Free.
+     Both boxes stay editable: paste lyrics finished in Lyric Engine here.
+  2. តន្ត្រី (music): Box 1 + Box 2 -> Suno MP3 (vocal song and/or score).
+     Spends credits, so it only runs on its own button.
+Screenwriting output and production budgets are out of scope.
 
 Suno routes used (configure SUNO_API_BASE_URL; check them against the API docs
 you have access to):
@@ -202,13 +204,12 @@ def anchor_in_lyrics(anchor: str, lyrics: str) -> bool:
 def build_blueprint(scene_script: str, era_choice: str, beat_choice: str, char_name: str,
                     char_want: str, char_ghost: str, anchor_object: str):
     if not (scene_script or "").strip():
-        return ("⚠️ សូមបញ្ចូលស្គ្រីប ១ ឈុតជាមុនសិន។", "", "", "", "", [], "{}", {})
+        return ("⚠️ សូមបញ្ចូលស្គ្រីប ១ ឈុតជាមុនសិន។", "", "", "", "", {})
 
     dna = VO5MasterSynchronicityPipeline.extract_scene_dna(
         scene_script, era_choice, beat_choice, char_name, char_want, char_ghost, anchor_object)
     song_title, box1_style, box2_lyrics = VO5MasterSynchronicityPipeline.build_lyric_blueprint(dna)
     score = VO5MasterSynchronicityPipeline.build_soundtrack_score_cues(dna)
-    budget_rows, budget = VO5MasterSynchronicityPipeline.calculate_budget_and_schedule(dna)
 
     notes = [f"✅ ទំនុកច្រៀងរួចរាល់ · Box 1 {len(box1_style)}/{BOX1_MAX} តួអក្សរ"]
     if len(box1_style) > BOX1_MAX:
@@ -224,19 +225,15 @@ def build_blueprint(scene_script: str, era_choice: str, beat_choice: str, char_n
         f"- **Box 1 ភ្លេងសុទ្ធ៖**\n```text\n{score.get('suno_instrumental_box1', '')}\n```\n"
         f"- **សំឡេងបរិយាកាស (sounds-create)៖**\n```text\n{score.get('suno_sounds_loop_prompt', '')}\n```"
     )
-    if budget:
-        notes.append(f"📊 ថ្ងៃថត {budget.get('shoot_days', '?')} · ថវិកា ${float(budget.get('total_physical_usd', 0)):,.2f} (ប៉ាន់ស្មាន)")
 
     state = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "scene_dna": dna,
         "lyric_blueprint": {"title": song_title, "box1": box1_style, "box2": box2_lyrics},
         "soundtrack_score": score,
-        "production_budget_summary": budget,
         "suno_live_tracks": [],
     }
-    return ("\n".join(notes), song_title, box1_style, box2_lyrics, score_md, budget_rows,
-            json.dumps(state, ensure_ascii=False, indent=2, default=str), state)
+    return ("\n".join(notes), song_title, box1_style, box2_lyrics, score_md, state)
 
 
 # ==============================================================================
@@ -268,24 +265,28 @@ def _make_track(api_key: str, payload: Dict[str, Any], kind: str, icon: str, pre
     return mp3
 
 
-def generate_audio(state: Dict[str, Any], mode: str, model: str, vocal_gender: str,
-                   typed_user_id: str, request: gr.Request = None):
-    if not state or not state.get("lyric_blueprint"):
-        return ("⚠️ សូមបង្កើតទំនុកច្រៀងជាមុនសិន (ជំហានទី ១)។", None, None, "", "{}", state)
+def generate_audio(state: Dict[str, Any], title: str, box1: str, box2: str, mode: str, model: str,
+                   vocal_gender: str, typed_user_id: str, request: gr.Request = None):
+    """Part 2 (music). Uses what is in Box 1 / Box 2 now, so edited or pasted lyrics are sung."""
+    state = dict(state or {})
+    title, box1, box2 = (title or "").strip(), (box1 or "").strip(), (box2 or "").strip()
+    if not box1 or (mode in (MODE_BOTH, MODE_VOCAL) and not box2):
+        return ("⚠️ សូមបំពេញ Box 1 (រចនាបថភ្លេង) និង Box 2 (ទំនុកច្រៀង) ជាមុនសិន។", None, None, "", state)
+    state["lyric_blueprint"] = {"title": title or "Untitled", "box1": box1, "box2": box2}
 
     api_key = server_api_key()
     if not api_key:
         return ("⚠️ ម៉ាស៊ីនមេមិនទាន់មាន SUNO_API_KEY ទេ។ ទំនុកច្រៀង និងកូដភ្លេងរួចរាល់ហើយ៖ "
                 "អ្នកគ្រប់គ្រងត្រូវកំណត់ SUNO_API_KEY នៅលើម៉ាស៊ីនមេ ទើបអាចផលិត MP3 បាន។",
-                None, None, "", json.dumps(state, ensure_ascii=False, indent=2, default=str), state)
+                None, None, "", state)
 
     user_id = resolve_user(typed_user_id, request)
     if HAS_QUOTA_ENGINE:
         if not user_id:
-            return ("⛔ សូមចូលគណនី (ឬបញ្ចូលលេខសម្គាល់សមាជិក) មុនផលិតសំឡេង។", None, None, "", "{}", state)
+            return ("⛔ សូមចូលគណនី (ឬបញ្ចូលលេខសម្គាល់សមាជិក) មុនផលិតសំឡេង។", None, None, "", state)
         allowed, reason, _ = QuotaEnforcerProxy.check_user_eligibility(user_id, action_type="SONG")
         if not allowed:
-            return (f"⛔ {reason}\nសូមបញ្ចូលកូតាតាម ABA KHQR ជាមុនសិន។", None, None, "", "{}", state)
+            return (f"⛔ {reason}\nសូមបញ្ចូលកូតាតាម ABA KHQR ជាមុនសិន។", None, None, "", state)
 
     state = json.loads(json.dumps(state, default=str))   # work on a copy
     state["suno_live_tracks"] = []
@@ -298,7 +299,7 @@ def generate_audio(state: Dict[str, Any], mode: str, model: str, vocal_gender: s
         duration = min(360, max(30, int(float(dna.get("screen_time_sec", 60) or 60))))
         payload, w = SunoV6LiveEngine.build_payload(
             f"OST Score - {str(dna.get('scene_heading', ''))[:24]}",
-            score.get("suno_instrumental_box1", ""), instrumental=True, duration=duration, model=model)
+            score.get("suno_instrumental_box1") or bp["box1"], instrumental=True, duration=duration, model=model)
         warnings += w
         score_mp3 = _make_track(api_key, payload, "Soundtrack Score", "🎼", "vo5_ost_score", lines, state)
 
@@ -318,7 +319,7 @@ def generate_audio(state: Dict[str, Any], mode: str, model: str, vocal_gender: s
     if warnings:
         status += "\n" + "\n".join("⚠️ " + w for w in warnings)
     links = "### 🎧 លទ្ធផលពី Suno\n" + ("\n".join(lines) if lines else "មិនមាន track។")
-    return (status, score_mp3, vocal_mp3, links, json.dumps(state, ensure_ascii=False, indent=2, default=str), state)
+    return (status, score_mp3, vocal_mp3, links, state)
 
 
 # ==============================================================================
@@ -337,15 +338,15 @@ def build_vo5_synchronicity_live_suno_ui():
     pick = lambda options, wanted: wanted if wanted in options else (options[0] if options else None)
 
     with gr.Blocks(title="VO5 Studio Pro") as app:
-        gr.Markdown("## VO5 Studio Pro\nស្គ្រីប ១ ឈុត ➔ ទំនុកច្រៀង។ អត្ថន័យ និងអារម្មណ៍មកមុន។")
+        gr.Markdown("## VO5 Studio Pro\nអត្ថន័យ និងអារម្មណ៍មកមុន។")
         blueprint_state = gr.State({})
 
-        # Level 1: what a new writer needs
-        scene_input = gr.Textbox(label="ស្គ្រីប ១ ឈុត (Fountain)", lines=7, value=DEFAULT_SCENE)
+        # ---- Part 1: ទំនុកច្រៀង (free) ----
+        gr.Markdown("### ១. ទំនុកច្រៀង")
+        scene_input = gr.Textbox(label="ស្គ្រីប ១ ឈុត ឬសាច់រឿង", lines=6, value=DEFAULT_SCENE)
         with gr.Row():
             char_name_in = gr.Textbox(label="តួអង្គឯក", value="តារា (Dara)")
             anchor_obj_in = gr.Textbox(label="វត្ថុតំណាងក្នុងឈុត (Anchor Object)", value="រូបថតចាស់ប្រឡាក់ឈាម")
-
         with gr.Accordion("ព័ត៌មានរឿងបន្ថែម", open=False):
             era_dropdown = gr.Dropdown(label="សម័យកាល", choices=eras,
                                        value=pick(eras, "សម័យព្រំដែន ១៩៧៩ / ភ្នំខ្មោច (1979 Border Crisis)"))
@@ -353,44 +354,37 @@ def build_vo5_synchronicity_live_suno_ui():
                                         value=pick(beats, "Beat 12: All Is Lost (បាត់បង់អ្វីៗទាំងអស់)"))
             char_want_in = gr.Textbox(label="គោលដៅតួអង្គ (Want)", value="នាំគ្រួសារឆ្លងដែនទៅរកសុវត្ថិភាព")
             char_ghost_in = gr.Textbox(label="ដំបៅអតីតកាល (Ghost/Lie)", value="ការបាត់បង់ឪពុកក្នុងវាលពិឃាត")
-
         btn_blueprint = gr.Button("បង្កើតទំនុកច្រៀង", variant="primary")
-        status_out = gr.Textbox(label="ស្ថានភាព", lines=3, interactive=False)
+        status_out = gr.Textbox(label="ស្ថានភាព", lines=2, interactive=False)
         title_out = gr.Textbox(label="ចំណងជើងបទ")
-        box1_out = gr.Textbox(label=f"BOX 1: Style of Music (≤ {BOX1_MAX} តួអក្សរ)")
-        box2_out = gr.Code(label="BOX 2: ទំនុកច្រៀង", language="markdown")
+        box1_out = gr.Textbox(label=f"BOX 1: រចនាបថភ្លេង (≤ {BOX1_MAX} តួអក្សរ)")
+        box2_out = gr.Textbox(label="BOX 2: ទំនុកច្រៀង (កែបាន ឬបិទភ្ជាប់ពី Lyric Engine)", lines=12)
 
-        # Level 3: spends credits — its own button, never automatic
-        with gr.Accordion("ផលិតសំឡេង MP3 (ចំណាយ Suno credit)", open=False):
-            with gr.Row():
-                mode_in = gr.Dropdown(label="ផលិតអ្វី", choices=MODE_CHOICES, value=MODE_BOTH)
-                model_in = gr.Dropdown(label="ម៉ូដែល Suno", choices=["v6"], value="v6", allow_custom_value=True)
-                gender_in = gr.Dropdown(label="សំឡេងអ្នកច្រៀង", choices=[("ប្រុស", "male"), ("ស្រី", "female")], value="male")
+        # ---- Part 2: តន្ត្រី (spends credits, own button) ----
+        gr.Markdown("### ២. តន្ត្រី")
+        with gr.Row():
+            mode_in = gr.Dropdown(label="ផលិតអ្វី", choices=MODE_CHOICES, value=MODE_VOCAL)
+            gender_in = gr.Dropdown(label="សំឡេងអ្នកច្រៀង", choices=[("ប្រុស", "male"), ("ស្រី", "female")], value="male")
+        with gr.Accordion("ការកំណត់ និងព័ត៌មានភ្លេង", open=False):
+            model_in = gr.Dropdown(label="ម៉ូដែល Suno", choices=["v6"], value="v6", allow_custom_value=True)
             user_id_in = gr.Textbox(label="លេខសម្គាល់សមាជិក (បើមិនបានចូលគណនី)", value="")
-            btn_audio = gr.Button("ផលិតសំឡេង")
-            audio_status = gr.Textbox(label="ស្ថានភាព Suno", lines=2, interactive=False)
-            with gr.Row():
-                score_audio_player = gr.Audio(label="ភ្លេង Score", type="filepath", interactive=False)
-                vocal_audio_player = gr.Audio(label="បទចម្រៀង", type="filepath", interactive=False)
-            suno_links_md = gr.Markdown()
-
-        # Level 3: producer tools
-        with gr.Accordion("សម្រាប់អ្នកផលិត (ភ្លេង ថវិកា JSON)", open=False):
             score_md_out = gr.Markdown()
-            budget_table_out = gr.Dataframe(
-                headers=["ផ្នែកចំណាយ", "បរិមាណ / រយៈពេល", "ទឹកប្រាក់ប៉ាន់ស្មាន (USD)", "កំណត់សម្គាល់"],
-                interactive=False, wrap=True)
-            json_state_out = gr.Code(label="Project State JSON", language="json")
+        btn_audio = gr.Button("ផលិតតន្ត្រី (ចំណាយ Suno credit)")
+        audio_status = gr.Textbox(label="ស្ថានភាព Suno", lines=2, interactive=False)
+        with gr.Row():
+            vocal_audio_player = gr.Audio(label="បទចម្រៀង", type="filepath", interactive=False)
+            score_audio_player = gr.Audio(label="ភ្លេង Score", type="filepath", interactive=False)
+        suno_links_md = gr.Markdown()
 
         btn_blueprint.click(
             fn=build_blueprint,
             inputs=[scene_input, era_dropdown, beat_dropdown, char_name_in, char_want_in, char_ghost_in, anchor_obj_in],
-            outputs=[status_out, title_out, box1_out, box2_out, score_md_out, budget_table_out, json_state_out, blueprint_state],
+            outputs=[status_out, title_out, box1_out, box2_out, score_md_out, blueprint_state],
         )
         btn_audio.click(
             fn=generate_audio,
-            inputs=[blueprint_state, mode_in, model_in, gender_in, user_id_in],
-            outputs=[audio_status, score_audio_player, vocal_audio_player, suno_links_md, json_state_out, blueprint_state],
+            inputs=[blueprint_state, title_out, box1_out, box2_out, mode_in, model_in, gender_in, user_id_in],
+            outputs=[audio_status, score_audio_player, vocal_audio_player, suno_links_md, blueprint_state],
         )
     return app
 
