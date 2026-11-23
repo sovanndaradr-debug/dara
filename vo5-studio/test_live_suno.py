@@ -50,6 +50,7 @@ class FakeSuno(BaseHTTPRequestHandler):
     """Behaves like AceData Cloud: POST /suno/audios -> task_id, POST /suno/tasks -> response.data[]."""
     fail_create = False
     pending = False
+    null_task = False
 
     def log_message(self, *a):
         pass
@@ -70,6 +71,8 @@ class FakeSuno(BaseHTTPRequestHandler):
                 return self._json(401, {"error": {"code": "invalid_token", "message": "The token is invalid"}})
             return self._json(200, {"task_id": "t-" + ("s" if payload["instrumental"] else "v")})
         if self.path.endswith("/suno/tasks"):
+            if FakeSuno.null_task:
+                return self._json(200, None)
             tid = payload["id"]
             state = "pending" if FakeSuno.pending else "succeeded"
             songs = [{"id": f"{tid}-{i}", "state": state,
@@ -166,6 +169,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(creates()), 1)              # one create, then only look-ups
         self.assertIn("t-v", out[3]); self.assertIn("មិនទាន់ចប់", out[3])
         self.assertIn("មិនមាន track", out[0])            # nothing finished, nothing billed
+
+    def test_null_task_answer_does_not_crash(self):
+        FakeSuno.null_task = True
+        try:
+            out = music("vocal")
+            self.assertIn("មិនទាន់ចប់", out[3])
+        finally:
+            FakeSuno.null_task = False
 
     def test_invalid_token_is_explained(self):
         FakeSuno.fail_create = True

@@ -97,7 +97,8 @@ class SunoV6LiveEngine:
         req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
         try:
             with urllib.request.urlopen(req, timeout=60) as resp:
-                return json.loads(resp.read().decode("utf-8") or "{}")
+                data = json.loads(resp.read().decode("utf-8") or "{}")
+                return data if isinstance(data, dict) else {}   # AceData answers a bare null for an unknown task
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="ignore")
             try:
