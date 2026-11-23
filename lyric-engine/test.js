@@ -35,3 +35,7 @@ assert.strictEqual(E.guessMeter(kk).id, 'kakagati');
 assert.strictEqual(E.guessMeter('ច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ\nប៉ុន្តែមាសមេអ្នកនៅសែនឆ្ងាយ\nថ្ងៃណាបាននែបនិត្យកាយ\nបើនៅឆ្ងាយឈងមិនដល់'), null);
 assert.strictEqual(pass, cases.length);
 console.log('all assertions passed');
+// lessons from the Bantol Kak poem (EBC grade 9)
+for (const [t, want] of [['ត្រីផងយាត្រា','ត្រី·ផង·យា·ត្រា'],['បុណ្យអ្នកឯង','បុណ្យ·អ្នក·ឯង'],['ក៏មកប្រើអញ','ក៏·មក·ប្រើ·អញ'],['ឱ្យយល់ជាក់ស្តែង','ឱ្យ·យល់·ជាក់·ស្តែង'],['រៀនរស់','រៀន·រស់'],['ទៅជនបទ','ទៅ·ជន·បទ']])
+  assert.strictEqual(E.analyze(t).lines[0].syllables.map(s => s.text).join('·'), want);
+console.log('bantol kak lessons passed');

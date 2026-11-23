@@ -52,14 +52,21 @@
       var bare = !hasNucleus(cl);
       if (cur && cur.nikahitOnly && bare && cl.subs.length === 0 && cl.base === 'ង' && !cur.fin) { attach(cur, cl); continue; }   // ាំង
       if (canTakeFinal && isFinalMarked(cl)) { attach(cur, cl); continue; }
-      if (canTakeFinal && bare && cl.subs.length === 0) { attach(cur, cl); continue; }
+      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base)) { attach(cur, cl); continue; }   // inherent vowel + final: រង, ជន
+      if (canTakeFinal && bare && cl.subs.length === 0) {
+        // A run of bare consonants after an open syllable pairs up as (onset + final):
+        // odd run -> the first one closes the open syllable (រៀ|ន រស់), even run -> they pair (ត្រី|ផង, ប្រើ|អញ, ឱ្យ|យល់)
+        var n = 0;
+        for (var q = k; q < cls.length; q++) { var c2 = cls[q]; if (isCons(c2.base) && c2.subs.length === 0 && !hasNucleus(c2)) n++; else break; }
+        if (n % 2 === 1) { attach(cur, cl); continue; }
+      }
       if (canTakeFinal && bare && cl.subs.length > 0) {
         // a subscript cluster with no vowel ends the syllable unless a bare consonant follows (សង្គម vs ចន្ទ)
-        var nextBare = next && !hasNucleus(next) && !isFinalMarked(next);
+        var nextBare = next && !hasNucleus(next) && !isFinalMarked(next) && next.subs.length === 0;   // សង្គម (ម follows) vs បុណ្យ|អ្នក
         if (!nextBare) { attach(cur, cl); cur.approx = true; continue; }
         cur.approx = true;
       }
-      cur = { text: cl.text, base: cl.base, subs: cl.subs.slice(), vowels: cl.vowels, marks: cl.marks, fin: '', closed: /[ំះៈ]/.test(cl.marks), nikahitOnly: /ំ/.test(cl.marks) && !/[ះៈ]/.test(cl.marks), approx: false };
+      cur = { text: cl.text, base: cl.base, subs: cl.subs.slice(), vowels: cl.vowels, marks: cl.marks, fin: '', closed: /[ំះៈ៏]/.test(cl.marks), nikahitOnly: /ំ/.test(cl.marks) && !/[ះៈ]/.test(cl.marks), approx: false };
       syl.push(cur);
     }
     function attach(s, cl) { s.text += cl.text; s.fin = cl.base; s.closed = true; }
@@ -178,18 +185,23 @@
       links: [{ from: [1, 4], to: [[2, 4]] }, { from: [3, 4], to: [[5, 4]] }, { from: [5, 4], to: [[6, 4]] }],
       cross: { from: [7, 4], to: [3, 4] }, mood: 'ពណ៌នាទីកន្លែង តួអង្គ ធម្មជាតិ ផ្តើមរឿង ពេលខ្លះសម្តែងទុក្ខសោក' },
     { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [], verified: true, use: 'ការអប់រំ ទូន្មាន បរិយាកាសឧត្តុង្គឧត្តម', tempo: ['festive'],
-      note: 'វិគីភីឌា និង studykhmer ថា ៥-៦-៥-៦ ឯកសារម្ចាស់គម្រោងថា ៥-៤-៥-៤៖ ត្រូវការប្រភពមួយទៀត',
+      note: 'ប្រភព ៤ (វិគីភីឌា studykhmer learnkhmer24 rosveasna) ថា ៥-៦-៥-៦',
       links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }, { from: [3, 5], to: [[4, 3]] }],
       cross: { from: [4, 6], to: [2, 6] }, mood: '' },
     { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true, use: 'ភាពរន្ធត់ តានតឹង ការផ្លាស់ប្តូរភ្ញាក់ផ្អើល Hard Trap', tempo: ['fast', 'drama'],
       links: [{ from: [1, 6], to: [[2, 4]] }],
       cross: { from: [3, 4], to: [1, 6] }, mood: '' },
-    { id: 'pumnol', name: 'បទពំនោល', lines: [4, 6, 4, 6], stress: [2, 4], verified: false,
-      note: 'ប្រភពផ្ទុយគ្នា (៤/៦/៤/៦, ៦/៤/៦, ឬ ៨-៦ តាមឯកសារម្ចាស់គម្រោង)៖ មិនទាន់ប្រើពិនិត្យ', tempo: ['drama'],
-      links: [], cross: null, mood: 'កំហឹង ការគំរាមកំហែង ពាក្យអង្វរ ជម្លោះចម្បាំង', use: 'ការបញ្ចេញអារម្មណ៍ខ្លាំងៗ' },
-    { id: 'pheak9', name: 'បទពាក្យ៩ (កម្រងកែវ)', lines: null, phrasing: ['3+3+3'], verified: false, links: [], cross: null,
-      note: 'ឃ្លាមាន ៩ ព្យាង្គ ចុងជួនប្រទាក់ខាងក្នុង៖ ចំណាប់ជួនពេញលេញមិនទាន់មានប្រភព',
+    { id: 'pumnol', name: 'បទពំនោល', lines: [6, 4, 6], stress: [], verified: true,
+      note: 'EBC ថ្នាក់ទី៩ learnkhmer24 khmer-lit rosveasna៖ ៣ឃ្លា ៦-៤-៦ (ផ្នែកខាងលើនៃទំព័រវិគីភីឌាថា ៤-៦-៤-៦ ខុសពីប្រភពផ្សេង)',
+      links: [{ from: [1, 6], to: [[2, 4]] }],
+      cross: { from: [3, 6], to: [1, 6] }, mood: 'កំហឹង ការគំរាមកំហែង ពាក្យអង្វរ ជម្លោះចម្បាំង', use: 'ការបញ្ចេញអារម្មណ៍ខ្លាំងៗ ល្ខោន', tempo: ['drama'] },
+    { id: 'pheak9', name: 'បទពាក្យ៩', lines: [9, 9, 9, 9], stress: [3, 6], phrasing: ['3+3+3'], verified: true,
+      links: [{ from: [1, 9], to: [[2, 3]] }, { from: [2, 9], to: [[3, 9]] }, { from: [3, 9], to: [[4, 3]] }],
+      cross: { from: [4, 9], to: [2, 9] }, mood: 'មនោសញ្ចេតនា ការឆ្លើយឆ្លងលែបខាយ ស្តីបន្ទោស គំហកគំហឹន',
       use: 'មនោសញ្ចេតនាជ្រៅ Melisma 6/8 យឺត ឈុតកម្សត់', tempo: ['slow'] },
+    { id: 'bantolkak', name: 'បទបន្ទោលកាក', lines: [4, 6, 4, 6], stress: [2, 4], verified: true,
+      links: [{ from: [1, 4], to: [[2, 4]] }, { from: [2, 6], to: [[3, 4]] }, { from: [3, 4], to: [[4, 2], [4, 4]] }],
+      cross: { from: [4, 6], to: [2, 6] }, mood: 'ការសន្ទនា ផ្តោះផ្តងគ្នាពីរនាក់', use: 'ការឆ្លើយឆ្លង ការសន្ទនា', tempo: ['mid', 'festive'] },
     { id: 'kakha', name: 'បទកខ', lines: null, phrasing: ['4-4'], verified: false, links: [], cross: null,
       note: 'ចំណាប់ជួនមិនទាន់មានប្រភព', use: 'អប់រំ', tempo: ['festive'] }
   ];
