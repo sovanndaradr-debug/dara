@@ -39,3 +39,29 @@ console.log('all assertions passed');
 for (const [t, want] of [['ត្រីផងយាត្រា','ត្រី·ផង·យា·ត្រា'],['បុណ្យអ្នកឯង','បុណ្យ·អ្នក·ឯង'],['ក៏មកប្រើអញ','ក៏·មក·ប្រើ·អញ'],['ឱ្យយល់ជាក់ស្តែង','ឱ្យ·យល់·ជាក់·ស្តែង'],['រៀនរស់','រៀន·រស់'],['ទៅជនបទ','ទៅ·ជន·បទ']])
   assert.strictEqual(E.analyze(t).lines[0].syllables.map(s => s.text).join('·'), want);
 console.log('bantol kak lessons passed');
+// lessons from the owner's PDFs (Khmer Wikipedia pages)
+const p7 = E.meters.filter(m => m.id === 'pheak7')[0];
+assert.deepStrictEqual(p7.samePosition, [[0, 2]]);
+const bk = E.meters.filter(m => m.id === 'bantolkak')[0];
+assert.deepStrictEqual(bk.links[0].to, [[2, 2], [2, 4]]);
+assert.deepStrictEqual(E.meters.filter(m => m.id === 'pumnol')[0].lines, [6, 4, 6]);
+console.log('pdf lessons passed');
+// lessons from the full Pheak 8 poem (Wikipedia PDF, four stanzas)
+for (const [t, want] of [['រៀនឲ្យលម្អិតរបៀបរស់នៅ', 8], ['រៀនចៀសរណ្តៅអបាយតណ្ហា', 8], ['ទៅកម្សាន្ត', 3]])
+  assert.strictEqual(E.analyze(t).lines[0].count, want);
+assert.ok(/ម្អិត/.test(E.analyze('រៀនឲ្យលម្អិតរបៀបរស់នៅ').lines[0].syllables.map(s => s.text).join('·')));
+const p8full = `រៀនរស់រៀនរករៀនរាប់រាក់ទាក់ រៀនចេះជឿជាក់រៀនជួយខ្លួនឯង
+រៀនស្រាយកំហឹងរៀនកុំចំបែង រៀនខំប្រឹងប្រែងរៀនក្រែងចិត្តគេ។
+រៀនរួមធ្វើការរៀនការចាត់ចែង រៀនគ្រប់កន្លែងកុំបីទំនេរ
+រៀនស្អប់ពាក្យឈ្លោះតែកុំរៀនជេរ រៀនធ្វើឲ្យគេមានទំនុកចិត្ត។
+រៀនចេះរាប់អានរៀនកុំរើសអើង រៀនរស់មិនឆ្មើងរៀនរស់ស្នាលស្និទ្ធ
+រៀនកុំលោភលន់បំភាន់បាំងបិទ រៀនឲ្យលម្អិតរបៀបរស់នៅ។
+រៀនដឹងរៀនដាស់ច្បាស់តួនាទី រៀនដើររកស៊ីរៀនចាប់គោលដៅ
+រៀនធ្វើអ្នកចេះកុំស្អប់អ្នកខ្លៅ រៀនចៀសរណ្តៅអបាយតណ្ហា៕`;
+const f8 = E.fitMeter(p8full, 'pheak8');
+f8.stanzas.forEach(st => assert.strictEqual(st.syllables, 32));
+console.log('pheak8 full poem score', f8.score.toFixed(2));
+assert.strictEqual(E.guessMeter(p8full).id, 'pheak8');
+console.log('pheak8 full poem passed');
+assert.deepStrictEqual(E.meters.filter(m => m.id === 'phujong')[0].cross.also, [[2, 4]]);
+console.log('phujong cross passed');

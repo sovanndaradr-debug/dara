@@ -13,6 +13,9 @@
   O_SERIES = O_SERIES.replace('ណ', '');
   // independent vowels written as the dependent vowel they sound like
   var INDEP = { 'ឥ': 'ិ', 'ឦ': 'ី', 'ឧ': 'ុ', 'ឩ': 'ូ', 'ឪ': 'ៅ', 'ឫ': 'ឹ', 'ឬ': 'ឺ', 'ឭ': 'ឹ', 'ឮ': 'ឺ', 'ឯ': 'ែ', 'ឰ': 'ៃ', 'ឱ': 'ោ', 'ឲ': 'ោ', 'ឳ': 'ៅ' };
+  var ONSET_SUBS = 'រលវយនមងញ';
+  // consonants that often stand alone as a minor syllable before a vowel syllable: រ·បៀប ក·ន្លែង ស·ម្រាប់ ម·នុស្ស
+  var MINOR_ONSETS = 'កគចជតទបពភរលសម';
   var FINAL_CLASS = {};
   [['k', 'កខគឃ'], ['ng', 'ង'], ['c', 'ចឆជឈ'], ['nh', 'ញ'], ['t', 'ដឋឌឍតថទធ'], ['n', 'ណន'],
    ['p', 'បផពភ'], ['m', 'ម'], ['y', 'យ'], ['', 'រ'], ['l', 'លឡ'], ['w', 'វ'], ['h', 'សឝឞហ'], ['', 'អ']]
@@ -50,6 +53,7 @@
       if (!isCons(cl.base) && !isIndepVowel(cl.base)) continue;
       var canTakeFinal = cur && !cur.closed;
       var bare = !hasNucleus(cl);
+      if (cl.base === '\u17A2' && bare && cl.subs.length === 0 && !isFinalMarked(cl)) canTakeFinal = false;   // អ is never a final (ណ្តៅ|អបាយ)
       if (cur && cur.nikahitOnly && bare && cl.subs.length === 0 && cl.base === 'ង' && !cur.fin) { attach(cur, cl); continue; }   // ាំង
       if (canTakeFinal && isFinalMarked(cl)) { attach(cur, cl); continue; }
       if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base)) { attach(cur, cl); continue; }   // inherent vowel + final: រង, ជន
@@ -57,8 +61,19 @@
         // A run of bare consonants after an open syllable pairs up as (onset + final):
         // odd run -> the first one closes the open syllable (រៀ|ន រស់), even run -> they pair (ត្រី|ផង, ប្រើ|អញ, ឱ្យ|យល់)
         var n = 0;
-        for (var q = k; q < cls.length; q++) { var c2 = cls[q]; if (isCons(c2.base) && c2.subs.length === 0 && !hasNucleus(c2)) n++; else break; }
-        if (n % 2 === 1) { attach(cur, cl); continue; }
+        for (var q = k; q < cls.length; q++) {
+          var c2 = cls[q];
+          if (c2.base === '\u17A2' && !hasNucleus(c2)) break;
+          if (isCons(c2.base) && c2.subs.length === 0 && !hasNucleus(c2)) { n++; continue; }
+          // ណ in រណ្តៅ, ម in លម្អិត: the base of a following subscript cluster is heard as a final when the
+          // subscript is the real onset (a stop); with ្រ ្ល ្វ ្យ ្ន ្ម ្ង ្ញ ្ហ the base is the onset (ក្រុង)
+          if (isCons(c2.base) && c2.subs.length && hasNucleus(c2) && ONSET_SUBS.indexOf(c2.subs[0]) < 0) n++;
+          break;
+        }
+        // ...unless the run ends in a likely minor syllable before a vowel syllable: ម្អិ|ត រ·បៀប (not ម្អិ·តរ)
+        var after = cls[k + n], lastRun = cls[k + n - 1];
+        var minorEnd = n >= 2 && n % 2 === 0 && after && hasNucleus(after) && lastRun && !isFinalMarked(lastRun) && MINOR_ONSETS.indexOf(lastRun.base) >= 0;
+        if (n % 2 === 1 || minorEnd) { attach(cur, cl); continue; }
       }
       if (canTakeFinal && bare && cl.subs.length > 0) {
         // a subscript cluster with no vowel ends the syllable unless a bare consonant follows (សង្គម vs ចន្ទ)
@@ -66,7 +81,9 @@
         if (!nextBare) { attach(cur, cl); cur.approx = true; continue; }
         cur.approx = true;
       }
+      var indepClosed = isIndepVowel(cl.base) && cl.subs.length > 0;   // ឲ្យ ឱ្យ end in -y
       cur = { text: cl.text, base: cl.base, subs: cl.subs.slice(), vowels: cl.vowels, marks: cl.marks, fin: '', closed: /[ំះៈ៏]/.test(cl.marks), nikahitOnly: /ំ/.test(cl.marks) && !/[ះៈ]/.test(cl.marks), approx: false };
+      if (indepClosed) cur.closed = true;
       syl.push(cur);
     }
     function attach(s, cl) { s.text += cl.text; s.fin = cl.base; s.closed = true; }
@@ -175,6 +192,7 @@
     { id: 'pheak7', name: 'បទពាក្យ៧', lines: [7, 7, 7, 7], stress: [2, 4], verified: true, phrasing: ['2-2-3', '3+4', '4+3'],
       use: 'និទានរឿង មនោសញ្ចេតនា Pop Ballad, R&B, Acoustic', tempo: ['slow', 'mid'],
       links: [{ from: [1, 7], to: [[2, 2], [2, 4], [2, 7]] }, { from: [2, 7], to: [[3, 7]] }, { from: [3, 7], to: [[4, 2], [4, 4], [4, 7]] }],
+      samePosition: [[0, 2]],   // វិគីភីឌា៖ បើជួននឹងព្យាង្គ២ ឃ្លា២ ត្រូវជួននឹងព្យាង្គ២ ឃ្លា៤ គ្រប់វគ្គ (ដូចគ្នាសម្រាប់ ៤)
       cross: { from: [4, 7], to: [2, 7] }, mood: 'គ្រប់បរិយាកាស៖ កំហឹង ទុក្ខសោក ការព្រាត់ប្រាស់ ភាពរីករាយ ការសន្ទនា ធម្មជាតិ' },
     { id: 'pheak8', name: 'បទពាក្យ៨', lines: [8, 8, 8, 8], stress: [3, 5], verified: true, phrasing: ['4+4'],
       use: 'សាច់រឿងធំ វីរភាព ធម៌អប់រំ គុណមាតាបិតា ចម្រៀងប្រជាប្រិយ', tempo: ['mid', 'festive'],
@@ -190,8 +208,8 @@
       cross: { from: [4, 6], to: [2, 6] }, mood: '' },
     { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true, use: 'ភាពរន្ធត់ តានតឹង ការផ្លាស់ប្តូរភ្ញាក់ផ្អើល Hard Trap', tempo: ['fast', 'drama'],
       links: [{ from: [1, 6], to: [[2, 4]] }],
-      cross: { from: [3, 4], to: [1, 6] }, mood: '' },
-    { id: 'pumnol', name: 'បទពំនោល', lines: [6, 4, 6], stress: [], verified: true,
+      cross: { from: [3, 4], to: [1, 6], also: [[2, 4]] }, mood: '' },   // វិគីភីឌា៖ ជួននឹងព្យាង្គ៦ ឃ្លា១ និងព្យាង្គ៤ ឃ្លា២ នៃវគ្គបន្ទាប់
+    { id: 'pumnol', name: 'បទពំនោល', lines: [6, 4, 6], stress: [2, 4], verified: true,
       note: 'EBC ថ្នាក់ទី៩ learnkhmer24 khmer-lit rosveasna៖ ៣ឃ្លា ៦-៤-៦ (ផ្នែកខាងលើនៃទំព័រវិគីភីឌាថា ៤-៦-៤-៦ ខុសពីប្រភពផ្សេង)',
       links: [{ from: [1, 6], to: [[2, 4]] }],
       cross: { from: [3, 6], to: [1, 6] }, mood: 'កំហឹង ការគំរាមកំហែង ពាក្យអង្វរ ជម្លោះចម្បាំង', use: 'ការបញ្ចេញអារម្មណ៍ខ្លាំងៗ ល្ខោន', tempo: ['drama'] },
@@ -200,7 +218,8 @@
       cross: { from: [4, 9], to: [2, 9] }, mood: 'មនោសញ្ចេតនា ការឆ្លើយឆ្លងលែបខាយ ស្តីបន្ទោស គំហកគំហឹន',
       use: 'មនោសញ្ចេតនាជ្រៅ Melisma 6/8 យឺត ឈុតកម្សត់', tempo: ['slow'] },
     { id: 'bantolkak', name: 'បទបន្ទោលកាក', lines: [4, 6, 4, 6], stress: [2, 4], verified: true,
-      links: [{ from: [1, 4], to: [[2, 4]] }, { from: [2, 6], to: [[3, 4]] }, { from: [3, 4], to: [[4, 2], [4, 4]] }],
+      links: [{ from: [1, 4], to: [[2, 2], [2, 4]] }, { from: [2, 6], to: [[3, 4]] }, { from: [3, 4], to: [[4, 2], [4, 4]] }],
+      note: 'ព្យាង្គ៤ ឃ្លា១ ជួននឹងព្យាង្គ២ ឬ៤ ឃ្លា២ (វិគីភីឌា)៖ EBC ថា ៤ តែប៉ុណ្ណោះ',
       cross: { from: [4, 6], to: [2, 6] }, mood: 'ការសន្ទនា ផ្តោះផ្តងគ្នាពីរនាក់', use: 'ការឆ្លើយឆ្លង ការសន្ទនា', tempo: ['mid', 'festive'] },
     { id: 'kakha', name: 'បទកខ', lines: null, phrasing: ['4-4'], verified: false, links: [], cross: null,
       note: 'ចំណាប់ជួនមិនទាន់មានប្រភព', use: 'អប់រំ', tempo: ['festive'] }
@@ -276,13 +295,23 @@
         });
         return { from: ln.from, fromText: a ? a.text : null, expected: ln.to, found: best, near: near };
       });
-      return { syllables: syl.length, expected: need, lines: lines.map(function (l) { return l.map(function (s) { return s.text; }); }), links: links };
+      var consistency = (m.samePosition || []).map(function (pair) {
+        var a = links[pair[0]].found || links[pair[0]].near, b = links[pair[1]].found || links[pair[1]].near;
+        return { links: pair, same: !!(a && b && a.pos[1] === b.pos[1]), positions: [a ? a.pos[1] : null, b ? b.pos[1] : null] };
+      });
+      return { syllables: syl.length, expected: need, lines: lines.map(function (l) { return l.map(function (s) { return s.text; }); }), links: links, consistency: consistency };
     });
     var cross = [];
     if (m.cross) for (var i = 0; i + 1 < sts.length; i++) {
       var A = sts[i].lines[m.cross.from[0] - 1], B = sts[i + 1].lines[m.cross.to[0] - 1];
       var a = A && A[m.cross.from[1] - 1], b = B && B[m.cross.to[1] - 1];
-      cross.push({ stanza: i + 1, from: a, to: b, kind: rhymeKind({ text: a, rime: rimeOf(a), vowel: vowelOf(a) }, { text: b, rime: rimeOf(b), vowel: vowelOf(b) }, { strict: false }) });
+      var mk = function (t) { return { text: t, rime: rimeOf(t), vowel: vowelOf(t) }; };
+      var entry = { stanza: i + 1, from: a, to: b, kind: rhymeKind(mk(a), mk(b), { strict: false }) };
+      if (m.cross.also) entry.also = m.cross.also.map(function (p) {
+        var L = sts[i + 1].lines[p[0] - 1], t = L && L[p[1] - 1];
+        return { pos: p, to: t, kind: rhymeKind(mk(a), mk(t), { strict: false }) };
+      });
+      cross.push(entry);
     }
     var total = 0, ok = 0;
     sts.forEach(function (st) { total += 1 + st.links.length; if (st.syllables === st.expected) ok++; st.links.forEach(function (l) { if (l.found) ok++; else if (l.near) ok += 0.5; }); });
