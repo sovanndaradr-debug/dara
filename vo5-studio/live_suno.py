@@ -386,7 +386,9 @@ def generate_audio(state: Dict[str, Any], title: str, box1: str, box2: str, mode
 
     status = (f"🎵 Suno បានបង្កើត {made} track។" if made else "❌ មិនមាន track ត្រូវបានបង្កើតទេ (មិនបានកាត់កូតា)។")
     if labelled and mode in (MODE_BOTH, MODE_VOCAL):
-        status += "\nℹ️ បានដាក់ស្លាក [Verse] [Chorus] ឲ្យ Box 2 ដោយស្វ័យប្រវត្តិ។"
+        import re as _re
+        tags = " ".join(dict.fromkeys(_re.findall(r"^\[[^\]]+\]", state["lyric_blueprint"]["box2"], flags=_re.M)))
+        status += f"\nℹ️ បានដាក់ស្លាក {tags} ឲ្យ Box 2 ដោយស្វ័យប្រវត្តិ។"
     if warnings:
         status += "\n" + "\n".join("⚠️ " + w for w in warnings)
     links = "### 🎧 លទ្ធផលពី Suno\n" + ("\n".join(lines) if lines else "មិនមាន track។")
