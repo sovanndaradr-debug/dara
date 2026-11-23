@@ -69,6 +69,8 @@
           var c2 = cls[q];
           if (c2.base === '\u17A2' && !hasNucleus(c2)) break;
           if (isCons(c2.base) && c2.subs.length === 0 && !hasNucleus(c2)) { n++; continue; }
+          // ង្ស in ពង្ស / វង្ស: a vowel-less subscript cluster is the final of the bare consonant before it
+          if (isCons(c2.base) && c2.subs.length && !hasNucleus(c2) && !isFinalMarked(c2) && ONSET_SUBS.indexOf(c2.subs[0]) < 0 && !(cls[q + 1] && isFinalMarked(cls[q + 1]))) n++;   // not គ្រ|ប់
           // ណ in រណ្តៅ, ម in លម្អិត: the base of a following subscript cluster is heard as a final when the
           // subscript is the real onset (a stop); with ្រ ្ល ្វ ្យ ្ន ្ម ្ង ្ញ ្ហ the base is the onset (ក្រុង)
           if (isCons(c2.base) && c2.subs.length && hasNucleus(c2) && ONSET_SUBS.indexOf(c2.subs[0]) < 0) n++;

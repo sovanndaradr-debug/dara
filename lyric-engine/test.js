@@ -72,3 +72,32 @@ assert.strictEqual(E.analyze('ផ្សេង ៗ').lines[0].count, 2);
 assert.strictEqual(E.analyze('តិចៗយឺតៗ').lines[0].count, 4);
 assert.ok(E.analyze('ផ្សេងៗ').lines[0].approx);
 console.log('repetition mark passed');
+
+// EBC grade-11 «កំណាព្យបទទ្វេមាត្រ» — two real ពាក្យ៧ variants (transcribed from the lesson images)
+const gopoat = `ប្រាសាទអង្គរគ្រឹះជាតិខ្មែរ
+ខ្មែរយើងត្រូវតែថែឱ្យគង់
+គង់កេរដំណែលតផៅពង្ស
+ពង្សយើងជាវង្សសាងប្រាង្គប្រា ។
+ប្រាសាទរាប់ពាន់លោកសាងទុក
+ទុកតទៅមុខតាងសាវតារ
+ជាជាក់ជាប់ធ្លាក់ល្អថ្លៃថ្លា
+ថ្លាថ្កើងអស្ចារ្យជូនតាយើង ។`;
+const aksar = `ចាស់ៗចូលចិត្តចេះចាត់ចែង
+ប្រឹងប្រែងប្រាយប្រាប់ប្រើប្រុសៗ
+ដាស់ដីដឹកដៀវដាក់ដាំដុះ
+បកបុរសបបេះបោកបែនបា។
+ស្រីៗស្រុកស្រែស្រុះស្រស់ស្រាយ
+កកេះកកាយកាន់កិច្ចការ
+តូចៗតាក់តែងតាមតាតា
+បួតបេះបោចបាបានបែនបុក ។`;
+const sy = w => E.analyze(w).lines[0].syllables.map(s => s.text).join('·');
+assert.strictEqual(sy('ផៅពង្ស'), 'ផៅ·ពង្ស');            // silent ្ស: ពង្ស is one syllable
+assert.strictEqual(sy('ជាវង្ស'), 'ជា·វង្ស');
+assert.strictEqual(sy('រៀនគ្រប់'), 'រៀន·គ្រប់');           // ្រ is an onset, not silent
+for (const [name, t] of [['គោព័ទ្ធស្នឹង', gopoat], ['អក្សររលូន', aksar]]) {
+  const f = E.fitMeter(t, 'pheak7');
+  f.stanzas.forEach(st => assert.strictEqual(st.syllables, 28));
+  assert.strictEqual(E.guessMeter(t).id, 'pheak7');
+  console.log('pheak7', name, 'score', f.score.toFixed(2));
+}
+assert.strictEqual(E.fitMeter(gopoat, 'pheak7').score, 1);
