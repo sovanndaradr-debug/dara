@@ -253,6 +253,8 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 .entry .meta, .entry .stats { margin: 0; font-size: 13px; color: var(--muted); }
 .entry .why { margin: 0; font-size: 14px; color: var(--color); }
 .entry details summary { cursor: pointer; font-size: 14px; color: var(--color-primary); }
+#pack pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 14px; line-height: 1.7; color: var(--color); max-height: 24em; overflow: auto; }
+#pack summary { cursor: pointer; font-size: 14px; color: var(--color-primary); }
 .entry pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; color: var(--color); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -312,6 +314,13 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     <section class="learned" id="learned" hidden>
       <h2>អ្វីដែលម៉ាស៊ីនរៀនពីគំរូ</h2>
       <div id="learned-body"></div>
+    </section>
+
+    <section class="learned" id="pack">
+      <h2>កញ្ចប់សម្រាប់កម្មវិធីបង្កើតទំនុកច្រៀង</h2>
+      <p class="hint">អត្ថបទមួយដែលរួមបញ្ចូល ច្បាប់កំពូល មេរៀនពីការកែរបស់អ្នក និងគំរូល្អៗ។ ចម្លងវាទៅដាក់ក្នុងការណែនាំ (prompt) របស់កម្មវិធីបង្កើតទំនុកច្រៀង (ឧ. Box 2)។</p>
+      <div class="actions"><button type="button" class="le-button" id="pack-copy">ចម្លងកញ្ចប់</button><span class="status" id="pack-status" aria-live="polite"></span></div>
+      <details><summary>មើលកញ្ចប់</summary><pre id="pack-text"></pre></details>
     </section>
 
     <section class="lib">
@@ -761,12 +770,12 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     if (!db) return;
     db.collection('lessons').orderBy('at', 'desc').onSnapshot(function (snap) {
       lessons = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, before: String(x.before || ''), after: String(x.after || ''), reasons: Array.isArray(x.reasons) ? x.reasons.map(String) : [], note: String(x.note || '') }; });
-      renderLessons(); render();
+      renderLessons(); render(); renderPack();
     }, function () {});
     db.collection('library').orderBy('at', 'desc').onSnapshot(function (snap) {
       library = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, title: String(x.title || ''), author: String(x.author || ''),
         kind: String(x.kind || 'lyric'), tempo: String(x.tempo || ''), text: String(x.text || ''), story: String(x.story || ''), why: String(x.why || '') }; });
-      renderLibrary();
+      renderLibrary(); renderPack();
     }, function () {});
   })();
 
@@ -860,6 +869,61 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     btn.disabled = false;
   });
 
+  /* ---------- Generator pack: principles + corrections + good examples, as one prompt text ---------- */
+  function buildPack() {
+    var L = [];
+    L.push('# ការណែនាំសម្រាប់តែងទំនុកច្រៀងខ្មែរ (Lyric Engine)');
+    L.push('');
+    L.push('## ច្បាប់កំពូល');
+    L.push('Rhyme is Rhythm, Rhythm is Soul. Meaning triumphs over rigid shells.');
+    L.push('- អត្ថន័យ សាច់រឿង និងអារម្មណ៍ពិត មកមុនគេ។ ព្យាង្គ និងពាក្យជួន គ្រាន់តែជាគ្រឿងផ្សំ។');
+    L.push('- កុំទាញពាក្យមកជួន ធ្វើឲ្យប្រយោគខ្វះន័យ។ កុំប្រើពាក្យបំពេញជើងកាព្យ (ឧ. រលែក ពិសក្តៅ ត្រួតត្រាល់ ថ្ងៃឡើង)។');
+    L.push('- កុំនិយាយរឿងដែលគេដឹងហើយ (ឧ. យប់ងងឹត)។ ឃ្លានីមួយៗគួរមានមនុស្ស ទង្វើ ទីកន្លែង ឬអារម្មណ៍ពិត។');
+    L.push('- ពាក្យជួន៖ អឃោសៈជួនជាមួយអឃោសៈ ឃោសៈជួនជាមួយឃោសៈ លើកលែងស្រៈ ួ ៀ ឿ។');
+    L.push('- រាប់ព្យាង្គតាមសំឡេងនិយាយពិត (ប្រវត្តិសាស្ត្រ = ៣)។');
+    var fixed = lessons.filter(function (l) { return l.after; }), open = lessons.filter(function (l) { return !l.after; });
+    if (fixed.length) {
+      L.push(''); L.push('## កំហុសដែលធ្លាប់ធ្វើ និងរបៀបកែ (កុំធ្វើដដែលទៀត)');
+      fixed.forEach(function (l) {
+        L.push('- ខុស៖ ' + l.before); L.push('  ត្រូវ៖ ' + l.after);
+        var why = (l.reasons || []).map(function (r) { return reasonName[r] || r; }).concat(l.note ? [l.note] : []).join(' · ');
+        if (why) L.push('  ហេតុផល៖ ' + why);
+      });
+    }
+    if (open.length) {
+      L.push(''); L.push('## ឃ្លាដែលអ្នកនិពន្ធបដិសេធ (កុំប្រើឃ្លាបែបនេះ)');
+      open.forEach(function (l) { L.push('- ' + l.before + ((l.reasons || []).length || l.note ? ' (' + (l.reasons || []).map(function (r) { return reasonName[r] || r; }).concat(l.note ? [l.note] : []).join(' · ') + ')' : '')); });
+    }
+    if (library.length) {
+      L.push(''); L.push('## គំរូល្អៗ (រៀនពីរបៀប មិនមែនចម្លងពាក្យ)');
+      library.forEach(function (e) {
+        var st = study(e.text);
+        L.push(''); L.push('### ' + e.title + (e.author ? ' (' + e.author + ')' : ''));
+        var info = [KIND[e.kind] || '', e.tempo && LyricEngine.tempo[e.tempo] ? LyricEngine.tempo[e.tempo].name : '', st.meter || 'ទម្រង់សេរី',
+                    (st.min === st.max ? km(st.min) : km(st.min) + '–' + km(st.max)) + ' ព្យាង្គ/ឃ្លា'].filter(Boolean).join(' · ');
+        L.push(info);
+        if (e.story) L.push('សាច់រឿង៖ ' + e.story);
+        if (e.why) L.push('ល្អព្រោះ៖ ' + e.why);
+        L.push(e.text);
+      });
+    }
+    L.push(''); L.push('មុនផ្តល់ចម្លើយ៖ អានឃ្លានីមួយៗម្តងទៀត ហើយសួរថា «តើឃ្លានេះមានន័យ និងអារម្មណ៍ពិតទេ ឬគ្រាន់តែជួន?»');
+    return L.join('\n');
+  }
+  function renderPack() { document.getElementById('pack-text').textContent = buildPack(); }
+  document.getElementById('pack-copy').addEventListener('click', function () {
+    var st = document.getElementById('pack-status'), text = buildPack();
+    function fallback() {
+      var pre = document.getElementById('pack-text'); pre.parentNode.open = true;
+      var r = document.createRange(); r.selectNodeContents(pre); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      st.textContent = 'ចម្លងដោយស្វ័យប្រវត្តិមិនបាន៖ អត្ថបទត្រូវបានជ្រើសរួច សូមចុច Ctrl+C។';
+    }
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('no clipboard');
+      navigator.clipboard.writeText(text).then(function () { st.textContent = 'បានចម្លង។'; }, fallback);
+    } catch (e) { fallback(); }
+  });
+
   function route() {
     var lib = location.hash === '#library';
     document.getElementById('view-write').hidden = lib;
@@ -868,7 +932,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     document.getElementById('nav-write').setAttribute('aria-current', lib ? 'false' : 'page');
     document.getElementById('nav-library').setAttribute('aria-current', lib ? 'page' : 'false');
   }
-  window.addEventListener('hashchange', route); route();
+  window.addEventListener('hashchange', route); route(); renderPack();
 
   box.addEventListener('input', function () { if (openLine >= 0) { openLine = -1; panel.hidden = true; } render(); try { localStorage.setItem('lyrics', box.value); } catch (e) {} });
   render();
