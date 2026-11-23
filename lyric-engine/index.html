@@ -230,6 +230,30 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 .lesson .why { margin: 0; font-size: 13px; color: var(--muted); }
 .lesson .del { grid-row: 1 / span 3; grid-column: 2; align-self: start; }
 .tally { margin: 0; font-size: 14px; color: var(--color); }
+.nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav a { text-decoration: none; display: inline-block; }
+.nav .le-button[aria-current="page"] { border-color: var(--color-primary); color: var(--color-primary); }
+.form { display: flex; flex-direction: column; gap: 10px; }
+.form .row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.form .f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.form label { font-size: 14px; color: var(--color); }
+.form input[type=text], .form textarea { width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--color-select-border); border-radius: var(--radius-checkbox); background: var(--background); color: var(--color); font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; }
+.form textarea.big { min-height: 9em; resize: vertical; }
+.form input:focus-visible, .form textarea:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.form .hint { margin: 0; font-size: 13px; color: var(--muted); }
+.learned { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid var(--color-select-border); border-bottom: 1px solid var(--color-select-border); }
+.learned h2, .lib h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--color); }
+.learned p { margin: 0; font-size: 14px; color: var(--color); }
+.learned .muted { color: var(--muted); }
+.lib { display: flex; flex-direction: column; gap: 8px; }
+.entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.entry { padding: 12px 0; border-bottom: 1px solid var(--color-select-border); display: flex; flex-direction: column; gap: 4px; }
+.entry .head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.entry h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--color); overflow-wrap: anywhere; }
+.entry .meta, .entry .stats { margin: 0; font-size: 13px; color: var(--muted); }
+.entry .why { margin: 0; font-size: 14px; color: var(--color); }
+.entry details summary { cursor: pointer; font-size: 14px; color: var(--color-primary); }
+.entry pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; color: var(--color); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -240,6 +264,12 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     <p class="tag" lang="km">អត្ថន័យ និងអារម្មណ៍មកមុន។ ម៉ាស៊ីននេះគ្រាន់តែរាប់ព្យាង្គ និងបង្ហាញពាក្យជួន ដើម្បីជួយអ្នកពិនិត្យ។</p>
   </div>
 
+  <nav class="nav" lang="km" aria-label="ផ្នែក">
+    <a class="le-button" href="#write" id="nav-write">សរសេរ</a>
+    <a class="le-button" href="#library" id="nav-library">បណ្ណាល័យគំរូ</a>
+  </nav>
+
+  <div id="view-write" style="display:contents">
   <div class="field">
     <label for="lyrics" lang="km">សរសេរ ឬបិទភ្ជាប់អត្ថបទចម្រៀងរបស់អ្នក៖</label>
     <textarea id="lyrics" class="le-textarea" lang="km" spellcheck="false">ច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ
@@ -257,6 +287,39 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     <p class="tally" id="tally"></p>
     <ul class="lessons" id="lessons"></ul>
   </section>
+
+  </div>
+
+  <div id="view-library" lang="km" hidden style="display:contents">
+    <form class="form" id="lib-form">
+      <p class="hint">បញ្ចូលទំនុកច្រៀង កំណាព្យ ឬសាច់រឿងដែលល្អ។ ម៉ាស៊ីនវិភាគវា ហើយរៀនពីវា។ សូមកត់ឈ្មោះអ្នកនិពន្ធ ឬប្រភពជានិច្ច។</p>
+      <div class="row2">
+        <div class="f"><label for="lib-title">ចំណងជើង</label><input type="text" id="lib-title" required></div>
+        <div class="f"><label for="lib-author">អ្នកនិពន្ធ ឬប្រភព</label><input type="text" id="lib-author"></div>
+      </div>
+      <div class="row2">
+        <div class="f"><label for="lib-kind">ប្រភេទ</label>
+          <select class="le-select" id="lib-kind"><option value="lyric">ទំនុកច្រៀង</option><option value="poem">កំណាព្យ</option><option value="story">សាច់រឿង</option></select></div>
+        <div class="f"><label for="lib-tempo">ចង្វាក់</label>
+          <select class="le-select" id="lib-tempo"><option value="">មិនដឹង</option></select></div>
+      </div>
+      <div class="f"><label for="lib-text">អត្ថបទ</label><textarea class="big" id="lib-text" required></textarea></div>
+      <div class="f"><label for="lib-story">សាច់រឿង ឬស្ថានភាព (តួអង្គ ទីកន្លែង អារម្មណ៍)</label><textarea id="lib-story" rows="2"></textarea></div>
+      <div class="f"><label for="lib-why">ហេតុអ្វីល្អ?</label><textarea id="lib-why" rows="2"></textarea></div>
+      <div class="actions"><button type="submit" class="le-button" id="lib-save">បញ្ចូលទៅបណ្ណាល័យ</button><span class="status" id="lib-status" aria-live="polite"></span></div>
+    </form>
+
+    <section class="learned" id="learned" hidden>
+      <h2>អ្វីដែលម៉ាស៊ីនរៀនពីគំរូ</h2>
+      <div id="learned-body"></div>
+    </section>
+
+    <section class="lib">
+      <h2 id="lib-heading">គំរូ</h2>
+      <p class="hint" id="lib-empty">មិនទាន់មានគំរូទេ។ បញ្ចូលគំរូដំបូងរបស់អ្នកនៅខាងលើ។</p>
+      <ul class="entries" id="entries"></ul>
+    </section>
+  </div>
 
   <p class="note" lang="km">ម៉ាស៊ីនមិនដឹងពីអត្ថន័យទេ។ កុំប្តូរពាក្យដែលមានន័យល្អ ដើម្បីតែឲ្យជួន ឬគ្រប់ព្យាង្គ។ ឃ្លាដែលមានអក្សរ និងពណ៌ដូចគ្នា ជួននឹងគ្នា។ សញ្ញា ≈ មានន័យថាម៉ាស៊ីនទាយ ហើយអាចខុស។</p>
 </main>
@@ -700,7 +763,112 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       lessons = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, before: String(x.before || ''), after: String(x.after || ''), reasons: Array.isArray(x.reasons) ? x.reasons.map(String) : [], note: String(x.note || '') }; });
       renderLessons(); render();
     }, function () {});
+    db.collection('library').orderBy('at', 'desc').onSnapshot(function (snap) {
+      library = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, title: String(x.title || ''), author: String(x.author || ''),
+        kind: String(x.kind || 'lyric'), tempo: String(x.tempo || ''), text: String(x.text || ''), story: String(x.story || ''), why: String(x.why || '') }; });
+      renderLibrary();
+    }, function () {});
   })();
+
+  /* ---------- Example library: good lyrics and stories the engine learns from ---------- */
+  var library = [];
+  var KIND = { lyric: 'ទំនុកច្រៀង', poem: 'កំណាព្យ', story: 'សាច់រឿង' };
+  var tempoSel = document.getElementById('lib-tempo');
+  Object.keys(LyricEngine.tempo).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = LyricEngine.tempo[k].name; tempoSel.appendChild(o); });
+
+  function study(text) {
+    // In Khmer verse a space between Khmer words separates ឃ្លា, so study each phrase as its own line
+    var phrased = String(text).replace(/([\u1780-\u17FF])[ \t\u00A0]+(?=[\u1780-\u17FF])/g, '$1\n');
+    var r = LyricEngine.analyze(phrased), lines = r.lines.filter(function (l) { return l.count; });
+    var counts = lines.map(function (l) { return l.count; }).sort(function (a, b) { return a - b; });
+    var tech = {};
+    lines.forEach(function (l) { (l.techniques || []).forEach(function (t) { tech[t] = (tech[t] || 0) + 1; }); });
+    var m = LyricEngine.guessMeter(text);
+    return { lines: lines.length, syllables: r.totalSyllables, min: counts[0] || 0, max: counts[counts.length - 1] || 0,
+             median: counts.length ? counts[Math.floor(counts.length / 2)] : 0, rhymes: r.groups.length,
+             rhymedLines: lines.filter(function (l) { return l.group; }).length, meter: m ? m.name : '', tech: tech };
+  }
+
+  function renderLibrary() {
+    var ul = document.getElementById('entries'); ul.textContent = '';
+    document.getElementById('lib-empty').hidden = library.length > 0;
+    document.getElementById('lib-heading').textContent = library.length ? 'គំរូ (' + km(library.length) + ')' : 'គំរូ';
+    var agg = { lines: 0, rhymed: 0, meters: {}, tech: {}, medians: [], byTempo: {} };
+    library.forEach(function (e) {
+      var st = study(e.text);
+      agg.lines += st.lines; agg.rhymed += st.rhymedLines; if (st.median) agg.medians.push(st.median);
+      if (st.meter) agg.meters[st.meter] = (agg.meters[st.meter] || 0) + 1;
+      Object.keys(st.tech).forEach(function (t) { agg.tech[t] = (agg.tech[t] || 0) + st.tech[t]; });
+      if (e.tempo) { var bt = agg.byTempo[e.tempo] = agg.byTempo[e.tempo] || []; if (st.median) bt.push(st.median); }
+
+      var li = document.createElement('li'); li.className = 'entry';
+      var head = document.createElement('div'); head.className = 'head';
+      var h = document.createElement('h3'); h.textContent = e.title;
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'fix'; del.textContent = 'លុប';
+      del.setAttribute('aria-label', 'លុបគំរូ៖ ' + e.title);
+      del.addEventListener('click', async function () { del.disabled = true; try { await db.collection('library').doc(e.id).delete(); } catch (x) { del.disabled = false; } });
+      head.append(h, del);
+      var meta = document.createElement('p'); meta.className = 'meta';
+      meta.textContent = [e.author, KIND[e.kind] || '', e.tempo && LyricEngine.tempo[e.tempo] ? LyricEngine.tempo[e.tempo].name : ''].filter(Boolean).join(' · ');
+      var stats = document.createElement('p'); stats.className = 'stats';
+      stats.textContent = km(st.lines) + ' ឃ្លា · ' + (st.min === st.max ? km(st.min) : km(st.min) + '–' + km(st.max)) + ' ព្យាង្គ/ឃ្លា · ' +
+        km(st.rhymedLines) + ' ឃ្លាជួន' + (st.meter ? ' · ' + st.meter : ' · សេរី') +
+        (Object.keys(st.tech).length ? ' · ' + Object.keys(st.tech).join(', ') : '');
+      li.append(head, meta, stats);
+      if (e.why) { var w = document.createElement('p'); w.className = 'why'; w.textContent = 'ល្អព្រោះ៖ ' + e.why; li.appendChild(w); }
+      var d = document.createElement('details'); var sm = document.createElement('summary'); sm.textContent = 'មើលអត្ថបទ';
+      var pre = document.createElement('pre'); pre.textContent = e.text;
+      d.append(sm, pre);
+      if (e.story) { var sp = document.createElement('p'); sp.className = 'meta'; sp.textContent = 'សាច់រឿង៖ ' + e.story; d.appendChild(sp); }
+      li.appendChild(d);
+      ul.appendChild(li);
+    });
+
+    var sec = document.getElementById('learned'), body = document.getElementById('learned-body');
+    sec.hidden = library.length === 0; body.textContent = '';
+    if (!library.length) return;
+    function line(t, muted) { var p = document.createElement('p'); if (muted) p.className = 'muted'; p.textContent = t; body.appendChild(p); }
+    var med = agg.medians.slice().sort(function (a, b) { return a - b; });
+    if (med.length) line('ឃ្លាធម្មតាមាន ' + km(med[Math.floor(med.length / 2)]) + ' ព្យាង្គ (មធ្យមភាគ)។');
+    if (agg.lines) line(km(Math.round(100 * agg.rhymed / agg.lines)) + '% នៃឃ្លា មានពាក្យជួនជាមួយឃ្លាផ្សេង។');
+    var mk = Object.keys(agg.meters);
+    line(mk.length ? 'រង្វាស់ដែលឃើញ៖ ' + mk.map(function (k) { return k + ' (' + km(agg.meters[k]) + ')'; }).join(', ') + '។'
+                   : 'គ្មានគំរូណាត្រូវនឹងរង្វាស់បុរាណទេ៖ គំរូរបស់អ្នកជាទម្រង់សេរី។');
+    var tk = Object.keys(agg.tech).sort(function (a, b) { return agg.tech[b] - agg.tech[a]; });
+    if (tk.length) line('ក្បាច់សូរដែលប្រើញឹកញាប់៖ ' + tk.map(function (k) { return k + ' (' + km(agg.tech[k]) + ' ឃ្លា)'; }).join(', ') + '។');
+    Object.keys(agg.byTempo).forEach(function (t) {
+      var a = agg.byTempo[t].sort(function (x, y) { return x - y; });
+      if (a.length) line(LyricEngine.tempo[t].name + '៖ ឃ្លាមធ្យម ' + km(a[Math.floor(a.length / 2)]) + ' ព្យាង្គ (' + km(a.length) + ' គំរូ)។', true);
+    });
+    line('ម៉ាស៊ីនរៀនតែរូបរាងពីគំរូ (ព្យាង្គ ជួន ក្បាច់សូរ)។ អត្ថន័យ និងហេតុផល «ហេតុអ្វីល្អ» គឺជាចំណេះដឹងរបស់អ្នក៖ វាត្រូវបានរក្សាទុកសម្រាប់អ្នកនិពន្ធ និងកម្មវិធីបង្កើតទំនុកច្រៀង។', true);
+  }
+
+  document.getElementById('lib-form').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var st = document.getElementById('lib-status'), btn = document.getElementById('lib-save');
+    var title = document.getElementById('lib-title').value.trim(), text = document.getElementById('lib-text').value.trim();
+    if (!title || !text) { st.textContent = 'សូមបញ្ចូលចំណងជើង និងអត្ថបទ។'; return; }
+    if (!db) { st.textContent = 'មិនអាចរក្សាទុកបានទេ៖ សូមចូលគណនី ហើយបើកទំព័រនេះម្តងទៀត។'; return; }
+    btn.disabled = true; st.textContent = 'កំពុងរក្សាទុក…';
+    try {
+      await db.collection('library').add({ title: title, author: document.getElementById('lib-author').value.trim(),
+        kind: document.getElementById('lib-kind').value, tempo: tempoSel.value, text: text,
+        story: document.getElementById('lib-story').value.trim(), why: document.getElementById('lib-why').value.trim(),
+        at: new Date().toISOString(), by: me || '' });
+      this.reset(); st.textContent = 'បានបញ្ចូលទៅបណ្ណាល័យ។';
+    } catch (x) { st.textContent = 'រក្សាទុកមិនបាន (' + (x && x.code || 'error') + ')។ សូមព្យាយាមម្តងទៀត។'; }
+    btn.disabled = false;
+  });
+
+  function route() {
+    var lib = location.hash === '#library';
+    document.getElementById('view-write').hidden = lib;
+    document.getElementById('view-write').style.display = lib ? 'none' : 'contents';
+    var vl = document.getElementById('view-library'); vl.hidden = !lib; vl.style.display = lib ? 'contents' : 'none';
+    document.getElementById('nav-write').setAttribute('aria-current', lib ? 'false' : 'page');
+    document.getElementById('nav-library').setAttribute('aria-current', lib ? 'page' : 'false');
+  }
+  window.addEventListener('hashchange', route); route();
 
   box.addEventListener('input', function () { if (openLine >= 0) { openLine = -1; panel.hidden = true; } render(); try { localStorage.setItem('lyrics', box.value); } catch (e) {} });
   render();
