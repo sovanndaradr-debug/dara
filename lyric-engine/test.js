@@ -151,3 +151,38 @@ for (const [a, b] of [['ក្រោយ', 'ឲ្យ'], ['ងាប់', 'ខ្
 }
 assert.strictEqual(pair('វិញ', 'ចេញ', true), null);
 console.log('classical rhymes passed');
+
+// Corpus lessons (Khmer Wikipedia poetry category, 13 poems, 5,000+ lines)
+const kromngoy = `ពូជខ្លៅមិនសូវប្រាជ្ញ
+ពូជកោងកាចមិនសូវស្លូត
+ពូជត្រង់ៗរហូត
+ពូជភរភូតមិនផុតផៅ ។
+ឪពុកម្តាយស្លូតត្រង់
+ចិត្តមិនចង់ឲ្យកូនខ្លៅ
+ជេរវាយស្តីប្រេដៅ
+ឲ្យកូនចៅបានចេះដឹង។
+ឪពុកគ្មានតំរិះ
+ឃើញកូនចេះមិនដែលខឹង
+ឃើញកូនខំប្រិតប្រឹង
+ឪពុកដឹងតែងត្រេកអរ។`;                                    // បណ្ដាំក្រមង៉ុយ (ព្រហ្មគីតិ)
+const hemchieu = `ត្រកូលជនបទក្បែរភ្នំពេញ
+គ្មានចិត្តទោម្នេញប្រើកម្លាំង
+ចិញ្ចឹមកូនចៅស្រែចម្បាំង
+តតាំងប្រឹថពីក្រតែមាន។
+កុមារហែម ចៀវ បឋមវ័យ
+ជីវិតមានន័យដ្បិតរស់រាន
+ឃុំទំនប់ធំកំណើតស្ពាន
+ស្រូវស្រែកល់លានពញាឮ។
+បុរាណសម័យខេត្តកណ្តាល
+កុមារស្រួចស្រាលនឹងជំងឺ
+ស្រឡាញ់វត្តវ៉ាទោះបីឈឺ
+រន្ទឺទេសនាត្រងត្រាប់ស្តាប់។`;                              // ប្រវត្តិអាចារ្យ ហែម ចៀវ (ពាក្យ៧)
+assert.strictEqual(E.guessMeter(kromngoy).id, 'brahmagiti');
+assert.strictEqual(E.guessMeter(hemchieu).id, 'pheak7');
+assert.ok(E.fitMeter(kromngoy, 'brahmagiti').stanzas[0].links[2].optional);
+for (const [w, want] of [['មិត្រ', 'មិត្រ'], ['បុត្រ', 'បុត្រ'], ['ជាសត្វ', 'ជា·សត្វ'], ['មគ្គផល', 'មគ្គ·ផល'], ['សកល', 'ស·កល'],
+  ['នរក', 'ន·រក'], ['រវល់', 'រ·វល់'], ['ពលករ', 'ពល·ករ'], ['ជនជាតិ', 'ជន·ជាតិ'], ['បរទេស', 'បរ·ទេស'], ['រងកម្ម', 'រង·កម្ម']])
+  assert.strictEqual(sy(w), want, w);
+// a verse with no metre is still not forced into one
+assert.strictEqual(E.guessMeter('ច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ\nប៉ុន្តែមាសមេអ្នកនៅសែនឆ្ងាយ\nថ្ងៃណាបាននែបនិត្យកាយ'), null);
+console.log('corpus lessons passed');

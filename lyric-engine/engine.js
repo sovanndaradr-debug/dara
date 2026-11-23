@@ -64,7 +64,9 @@
       if (cur && cur.nikahitOnly && bare && cl.subs.length === 0 && cl.base === 'ង' && !cur.fin) { attach(cur, cl); continue; }   // ាំង
       if (canTakeFinal && isFinalMarked(cl)) { attach(cur, cl); continue; }
       var silentNext = next && isCons(next.base) && next.subs.length && !hasNucleus(next) && !isFinalMarked(next) && ONSET_SUBS.indexOf(next.subs[0]) < 0 && !(cls[k + 2] && (isFinalMarked(cls[k + 2]) || !hasNucleus(cls[k + 2])));
-      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base) && !silentNext) { attach(cur, cl); continue; }   // inherent vowel + final: រង, ជន
+      var n2 = cls[k + 2];
+      var closedPair = next && isCons(next.base) && next.subs.length === 0 && (isFinalMarked(next) || !hasNucleus(next)) && (!n2 || hasNucleus(n2) && !isFinalMarked(n2));   // ស·កល ន·រក រ·វល់
+      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base) && !silentNext && !(closedPair && !cur.subs.length)) { attach(cur, cl); continue; }   // inherent vowel + final: រង, ជន
       if (canTakeFinal && bare && cl.subs.length === 0) {
         // A run of bare consonants after an open syllable pairs up as (onset + final):
         // odd run -> the first one closes the open syllable (រៀ|ន រស់), even run -> they pair (ត្រី|ផង, ប្រើ|អញ, ឱ្យ|យល់)
@@ -74,7 +76,7 @@
           if (c2.base === '\u17A2' && !hasNucleus(c2)) break;
           if (isCons(c2.base) && c2.subs.length === 0 && !hasNucleus(c2)) { n++; continue; }
           // ង្ស in ពង្ស / វង្ស: a vowel-less subscript cluster is the final of the bare consonant before it
-          if (isCons(c2.base) && c2.subs.length && !hasNucleus(c2) && !isFinalMarked(c2) && ONSET_SUBS.indexOf(c2.subs[0]) < 0 && !(cls[q + 1] && isFinalMarked(cls[q + 1]))) n++;   // not គ្រ|ប់
+          if (isCons(c2.base) && c2.subs.length && !hasNucleus(c2) && !isFinalMarked(c2) && 'រល'.indexOf(c2.subs[0]) < 0 && !(cls[q + 1] && (isFinalMarked(cls[q + 1]) || !hasNucleus(cls[q + 1])))) n++;   // not គ្រ|ប់
           // ណ in រណ្តៅ, ម in លម្អិត: the base of a following subscript cluster is heard as a final when the
           // subscript is the real onset (a stop); with ្រ ្ល ្វ ្យ ្ន ្ម ្ង ្ញ ្ហ the base is the onset (ក្រុង)
           if (isCons(c2.base) && c2.subs.length && hasNucleus(c2) && closesBefore(c2)) n++;   // ល·ម្អិត, but ពុក·ផ្ដាំ
@@ -85,10 +87,10 @@
         var minorEnd = n >= 2 && n % 2 === 0 && after && hasNucleus(after) && lastRun && !isFinalMarked(lastRun) && MINOR_ONSETS.indexOf(lastRun.base) >= 0;
         if (n % 2 === 1 || minorEnd) { attach(cur, cl); continue; }
       }
-      if (canTakeFinal && bare && cl.subs.length > 0 && 'រល'.indexOf(cl.subs[0]) < 0) {   // ស្រី·ស្រ·ដី: ្រ ្ល are never silent
+      if (canTakeFinal && bare && cl.subs.length > 0 && !('រល'.indexOf(cl.subs[0]) >= 0 && next)) {   // ស្រី·ស្រ·ដី, but មិត្រ បុត្រ (silent at word end)
         // a subscript cluster with no vowel ends the syllable unless a bare consonant follows (សង្គម vs ចន្ទ)
         var nextBare = next && isCons(next.base) && !hasNucleus(next) && !isFinalMarked(next) && next.subs.length === 0;   // សង្គម (ម follows) vs បុណ្យ|អ្នក
-        if (!nextBare) { attach(cur, cl); cur.approx = true; continue; }
+        if (!nextBare || cl.subs[0] === cl.base) { attach(cur, cl); cur.approx = true; continue; }   // មគ្គ·ផល
         cur.approx = true;
       }
       var indepClosed = isIndepVowel(cl.base) && cl.subs.length > 0;   // ឲ្យ ឱ្យ end in -y
@@ -219,8 +221,8 @@
       cross: { from: [7, 4], to: [3, 4] }, mood: 'ពណ៌នាទីកន្លែង តួអង្គ ធម្មជាតិ ផ្តើមរឿង ពេលខ្លះសម្តែងទុក្ខសោក' },
     { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [2, 3], stressNote: 'ព្យាង្គ២ ក្នុងឃ្លា៥ព្យាង្គ · ព្យាង្គ៣ ក្នុងឃ្លា៦ព្យាង្គ', verified: true, use: 'ការអប់រំ ទូន្មាន បរិយាកាសឧត្តុង្គឧត្តម', tempo: ['festive'],
       note: 'ប្រភព ៤ (វិគីភីឌា studykhmer learnkhmer24 rosveasna) ថា ៥-៦-៥-៦',
-      // ច្បាប់ប្រុស (៩៦ វគ្គ): ១:៥→២:៣ និង ២:៦→៣:៥ ជួនស្ទើរគ្រប់វគ្គ; ៣:៥→៤:៣ កម្រជួនណាស់ (៦/៦០) ដូច្នេះមិនបានដាក់ជាច្បាប់
-      links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }],
+      // ១:៥→២:៣ និង ២:៦→៣:៥ ជួនស្ទើរគ្រប់វគ្គ។ ៣:៥→៤:៣ ជាជម្រើស៖ ច្បាប់ប្រុស ៦/៦០ កេរកាលថ្មី ៣៦/១១១ ក្រមង៉ុយ ៣៨/៦៩
+      links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }, { from: [3, 5], to: [[4, 3]], optional: true }],
       cross: { from: [4, 6], to: [2, 6] }, mood: 'ភាពលន្លង់លន្លោច ទុក្ខសោក ការព្រាត់ប្រាស ប្រដៅ ផ្តែផ្តាំ ការឈឺចាប់' },
     { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true, use: 'ភាពរន្ធត់ តានតឹង ការផ្លាស់ប្តូរភ្ញាក់ផ្អើល Hard Trap', tempo: ['fast', 'drama'],
       links: [{ from: [1, 6], to: [[2, 4]] }],
@@ -335,7 +337,7 @@
         if (!best && a) ln.to.forEach(function (p) {
           [p[1] - 1, p[1] + 1].forEach(function (q) { var kind = rhymeKind(a, at([p[0], q]), { strict: false }); if (kind && !near && !best) near = { pos: [p[0], q], kind: kind }; });
         });
-        return { from: ln.from, fromText: a ? a.text : null, expected: ln.to, found: best, near: near };
+        return { from: ln.from, fromText: a ? a.text : null, expected: ln.to, found: best, near: near, optional: !!ln.optional };
       });
       var consistency = (m.samePosition || []).map(function (pair) {
         var a = links[pair[0]].found || links[pair[0]].near, b = links[pair[1]].found || links[pair[1]].near;
@@ -356,7 +358,8 @@
       cross.push(entry);
     }
     var total = 0, ok = 0;
-    sts.forEach(function (st) { total += 1 + st.links.length; if (st.syllables === st.expected) ok++; st.links.forEach(function (l) { if (l.found) ok++; else if (l.near) ok += 0.5; }); });
+    // an optional link (a rhyme many poets use, not all) earns nothing and costs nothing
+    sts.forEach(function (st) { total += 1; if (st.syllables === st.expected) ok++; st.links.forEach(function (l) { if (l.optional) return; total++; if (l.found) ok++; else if (l.near) ok += 0.5; }); });
     return { id: m.id, name: m.name, verified: m.verified, note: m.note || '', stanzas: sts, cross: cross, score: total ? ok / total : 0 };
   }
   function rimeOf(t) { if (!t) return null; var s = lineSyllables(t); return s.length ? s[s.length - 1].rime : null; }
@@ -364,9 +367,15 @@
 
   // Which metre is this closest to? Quiet information; returns null unless the fit is clear.
   function guessMeter(text) {
-    var best = null;
-    METERS.forEach(function (m) { if (!m.verified || !m.lines) return; var f = fitMeter(text, m.id); if (f && (!best || f.score > best.score)) best = f; });
-    return best && best.score >= 0.75 ? best : null;
+    var fits = [];
+    METERS.forEach(function (m) { if (!m.verified || !m.lines) return; var f = fitMeter(text, m.id); if (f) fits.push(f); });
+    fits.sort(function (a, b) { return b.score - a.score; });
+    var best = fits[0], second = fits[1] ? fits[1].score : 0;
+    if (!best) return null;
+    if (best.score >= 0.75) return best;
+    // a long real poem is never perfect: from 3 stanzas, a clear lead (twice the next metre) is enough
+    if (best.stanzas.length >= 3 && best.score >= 0.45 && best.score >= 2 * second) return best;
+    return null;
   }
 
   root.LyricEngine = { analyze: analyze, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO };
