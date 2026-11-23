@@ -261,6 +261,11 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 .form input[type=file] { font: inherit; font-size: 14px; color: var(--color); }
 .entry a { color: var(--color-primary); }
 .entry pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; color: var(--color); }
+.le-page:not(.trainer-on) .trainer, .le-page:not(.trainer-on) .nav { display: none; }
+.trainer-switch { margin: 40px 0 0; text-align: center; }
+.trainer-switch .le-link { background: none; border: 0; padding: 8px; font: inherit; font-size: 14px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.memory summary { cursor: pointer; list-style-position: outside; }
+.memory summary h2 { display: inline; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -273,8 +278,8 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 
   <nav class="nav" lang="km" aria-label="ផ្នែក">
     <a class="le-button" href="#write" id="nav-write">សរសេរ</a>
-    <a class="le-button" href="#library" id="nav-library">បណ្ណាល័យគំរូ</a>
-    <a class="le-button" href="#docs" id="nav-docs">ឯកសារមេរៀន</a>
+    <a class="le-button trainer" href="#library" id="nav-library">បណ្ណាល័យគំរូ</a>
+    <a class="le-button trainer" href="#docs" id="nav-docs">ឯកសារមេរៀន</a>
   </nav>
 
   <div id="view-write" style="display:contents">
@@ -290,11 +295,15 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
   <ol class="lines" id="lines" lang="km" aria-label="លទ្ធផល"></ol>
 
   <section class="memory" id="memory" lang="km" hidden>
-    <h2>អ្វីដែល Lyric Engine បានរៀនពីអ្នក</h2>
+    <details>
+    <summary><h2>អ្វីដែល Lyric Engine បានរៀនពីអ្នក</h2></summary>
     <p class="lead">រាល់ពេលអ្នកកែឃ្លាមួយ ម៉ាស៊ីនចងចាំ ហើយរំលឹកអ្នកនៅពេលឃ្លានោះលេចមកម្តងទៀត។</p>
     <p class="tally" id="tally"></p>
     <ul class="lessons" id="lessons"></ul>
+    </details>
   </section>
+
+  <p class="trainer-switch" lang="km"><button type="button" class="le-link" id="trainer-toggle" aria-pressed="false">ឧបករណ៍បង្រៀនម៉ាស៊ីន</button></p>
 
   </div>
 
@@ -1166,8 +1175,23 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     btn.disabled = false;
   });
 
+  /* What a new writer sees: the write box and its results only. The library, documents and generator
+     pack teach the engine; they appear when the trainer tools are switched on (remembered per browser). */
+  var pageRoot = document.querySelector('.le-page'), tToggle = document.getElementById('trainer-toggle');
+  function setTrainer(on) {
+    pageRoot.classList.toggle('trainer-on', on);
+    tToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    tToggle.textContent = on ? 'លាក់ឧបករណ៍បង្រៀនម៉ាស៊ីន' : 'ឧបករណ៍បង្រៀនម៉ាស៊ីន';
+    try { localStorage.setItem('trainer', on ? '1' : ''); } catch (e) {}
+    if (!on && location.hash && location.hash !== '#write') location.hash = '#write';
+  }
+  var trainerSaved = false; try { trainerSaved = localStorage.getItem('trainer') === '1'; } catch (e) {}
+  setTrainer(trainerSaved || location.hash === '#library' || location.hash === '#docs');
+  tToggle.addEventListener('click', function () { setTrainer(!pageRoot.classList.contains('trainer-on')); });
+
   function route() {
     var view = location.hash === '#library' ? 'library' : location.hash === '#docs' ? 'docs' : 'write';
+    if (view !== 'write' && !pageRoot.classList.contains('trainer-on')) setTrainer(true);
     ['write', 'library', 'docs'].forEach(function (v) {
       var el = document.getElementById('view-' + v), on = v === view;
       el.hidden = !on; el.style.display = on ? 'contents' : 'none';
