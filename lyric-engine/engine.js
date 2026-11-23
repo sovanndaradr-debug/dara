@@ -418,6 +418,20 @@
     return runs.map(function (r) { var m = METERS.filter(function (x) { return x.id === r.id; })[0]; return { id: r.id, name: m.name, from: r.from, to: r.to }; });
   }
 
-  root.LyricEngine = { analyze: analyze, guessSections: guessSections, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
+  /* Hand-off to part 2 (music): stanzas (blank-line separated) labelled the way Suno reads them.
+     A stanza that comes back word for word is the chorus. Text already tagged [..] is left as written. */
+  function songSheet(text) {
+    var t = String(text || '').replace(/\r/g, '').replace(/[ \t\u00A0]+$/gm, '').trim();
+    if (!t) return '';
+    if (/^\s*\[[^\]]+\]\s*$/m.test(t)) return t;
+    var sts = t.split(/\n\s*\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+    var key = function (x) { return x.replace(/\s+/g, ''); }, seen = {};
+    sts.forEach(function (x) { seen[key(x)] = (seen[key(x)] || 0) + 1; });
+    if (sts.length === 1) return '[Verse]\n' + sts[0];
+    var v = 0;
+    return sts.map(function (x) { return (seen[key(x)] > 1 ? '[Chorus]' : '[Verse ' + (++v) + ']') + '\n' + x; }).join('\n\n');
+  }
+
+  root.LyricEngine = { analyze: analyze, guessSections: guessSections, songSheet: songSheet, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
   if (typeof module !== 'undefined') module.exports = root.LyricEngine;
 })(typeof window !== 'undefined' ? window : globalThis);

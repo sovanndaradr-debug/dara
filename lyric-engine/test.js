@@ -210,3 +210,11 @@ assert.strictEqual(E.guessSections(chbab), null);                // one form: no
 assert.strictEqual(sy('ប្រកបការ'), 'ប្រ·កប·ការ');
 assert.strictEqual(sy('បុត្រទាំងបី'), 'បុត្រ·ទាំង·បី');
 console.log('sections passed');
+
+// hand-off to music: stanzas labelled for Box 2, a repeated stanza is the chorus
+const sheet = E.songSheet('ក ខ\nគ ឃ\n\nបន្ទរ មួយ\nបន្ទរ ពីរ\n\nង ច\n\nបន្ទរ  មួយ\nបន្ទរ ពីរ');
+assert.strictEqual(sheet.split('\n').filter(l => l.startsWith('[')).join(','), '[Verse 1],[Chorus],[Verse 2],[Chorus]');
+assert.strictEqual(E.songSheet('[Intro]\nអូន'), '[Intro]\nអូន');          // already tagged: left as written
+assert.strictEqual(E.songSheet('មួយឃ្លា'), '[Verse]\nមួយឃ្លា');
+assert.strictEqual(E.songSheet('  '), '');
+console.log('song sheet passed');

@@ -189,6 +189,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
   transition: box-shadow 200ms, border 200ms;
 }
 .le-textarea:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.handoff { margin: 8px 0 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
 .summary { margin: 0; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
 .lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .line { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--color-select-border); }
@@ -292,6 +293,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
   </div>
 
   <p class="summary" id="summary" lang="km" aria-live="polite"></p>
+  <p class="handoff" id="handoff" lang="km" hidden><button type="button" class="le-button" id="to-music">ចម្លងទៅតន្ត្រី (Box 2)</button> <span id="to-music-status" aria-live="polite"></span></p>
   <ol class="lines" id="lines" lang="km" aria-label="លទ្ធផល"></ol>
 
   <section class="memory" id="memory" lang="km" hidden>
@@ -794,7 +796,21 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     return runs.map(function (r) { var m = METERS.filter(function (x) { return x.id === r.id; })[0]; return { id: r.id, name: m.name, from: r.from, to: r.to }; });
   }
 
-  root.LyricEngine = { analyze: analyze, guessSections: guessSections, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
+  /* Hand-off to part 2 (music): stanzas (blank-line separated) labelled the way Suno reads them.
+     A stanza that comes back word for word is the chorus. Text already tagged [..] is left as written. */
+  function songSheet(text) {
+    var t = String(text || '').replace(/\r/g, '').replace(/[ \t\u00A0]+$/gm, '').trim();
+    if (!t) return '';
+    if (/^\s*\[[^\]]+\]\s*$/m.test(t)) return t;
+    var sts = t.split(/\n\s*\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+    var key = function (x) { return x.replace(/\s+/g, ''); }, seen = {};
+    sts.forEach(function (x) { seen[key(x)] = (seen[key(x)] || 0) + 1; });
+    if (sts.length === 1) return '[Verse]\n' + sts[0];
+    var v = 0;
+    return sts.map(function (x) { return (seen[key(x)] > 1 ? '[Chorus]' : '[Verse ' + (++v) + ']') + '\n' + x; }).join('\n\n');
+  }
+
+  root.LyricEngine = { analyze: analyze, guessSections: guessSections, songSheet: songSheet, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
   if (typeof module !== 'undefined') module.exports = root.LyricEngine;
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
@@ -850,6 +866,8 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       list.appendChild(li);
       if (idx === openLine) list.appendChild(panel);
     });
+    document.getElementById('handoff').hidden = r.totalLines < 2;
+    document.getElementById('to-music-status').textContent = '';
     sum.textContent = r.totalLines
       ? km(r.totalLines) + ' ឃ្លា · ' + km(r.totalSyllables) + ' ព្យាង្គ · ' + km(r.groups.length) + ' ក្រុមពាក្យជួន'
       : 'សរសេរបន្ទាត់ដំបូងរបស់អ្នក ហើយលទ្ធផលនឹងបង្ហាញនៅទីនេះ។';
@@ -1112,6 +1130,18 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     try {
       if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('no clipboard');
       navigator.clipboard.writeText(text).then(function () { st.textContent = 'បានចម្លង។'; }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  /* ---------- Hand-off to part 2 (music): copy the lyrics labelled for Box 2 ---------- */
+  document.getElementById('to-music').addEventListener('click', function () {
+    var st = document.getElementById('to-music-status'), text = LyricEngine.songSheet(box.value);
+    function fallback() { box.focus(); box.select(); st.textContent = 'ចម្លងដោយស្វ័យប្រវត្តិមិនបាន៖ សូមចុច Ctrl+C។'; }
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('no clipboard');
+      navigator.clipboard.writeText(text).then(function () {
+        st.textContent = 'បានចម្លង ' + km((text.match(/^\[/gm) || []).length) + ' ផ្នែក៖ បិទភ្ជាប់ក្នុង Box 2 នៃផ្នែកតន្ត្រី។';
+      }, fallback);
     } catch (e) { fallback(); }
   });
 
