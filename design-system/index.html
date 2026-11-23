@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lyric Engine sample</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components/bundle.css">
+<style>body{margin:0;background:var(--background)}</style>
+</head>
+<body class="le-page">
+<div class="le-main">
+  <div>
+    <p>Choose a theme:</p>
+    <select class="le-select" id="theme" aria-label="Theme">
+      <option value="">System default</option><option value="light">Light</option><option value="dark">Dark</option>
+      <option value="accessible-light">Accessible light</option><option value="accessible-dark">Accessible dark</option>
+    </select>
+  </div>
+  <div>
+    <p>Choose an operating system on which you want to use the engine:</p>
+    <select class="le-select" aria-label="Operating system"><option>Choose an operating system:</option><option>Linux</option><option>macOS</option><option>Windows</option></select>
+  </div>
+  <div>
+    <label class="le-label"><input class="le-checkbox" type="checkbox">Build the debug binary. Debug binaries are much larger and slower than the release one.</label>
+  </div>
+  <div>
+    <span>Choose which compiler you want to use:</span><br>
+    <label class="le-label"><input class="le-radio" type="radio" name="c">g++</label>
+    <label class="le-label"><input class="le-radio" type="radio" name="c" checked>clang (recommended)</label>
+  </div>
+  <div>
+    <p>Here is the complete instruction for building (see the <a class="le-link" href="README.md">brand book</a>):</p>
+    <code class="le-command" id="cmds"><ul><li>cmake -DCMAKE_BUILD_TYPE=Release ..</li><li>cmake --build . --target install</li></ul></code>
+    <button class="le-button le-indent" id="copy" type="button">Copy</button>
+  </div>
+</div>
+<script>
+document.getElementById('theme').onchange = function (e) {
+  if (e.target.value) document.documentElement.dataset.theme = e.target.value;
+  else delete document.documentElement.dataset.theme;
+};
+var btn = document.getElementById('copy');
+btn.onclick = function () {
+  var done = function (ok) {
+    btn.classList.add(ok ? 'success' : 'fail');
+    btn.textContent = ok ? 'Copied!' : "Couldn't copy :(";
+    setTimeout(function () { btn.classList.remove('success', 'fail'); btn.textContent = 'Copy'; }, 2000);
+  };
+  navigator.clipboard.writeText(document.getElementById('cmds').innerText).then(function () { done(true); }, function () { done(false); });
+};
+</script>
+</body>
+</html>
