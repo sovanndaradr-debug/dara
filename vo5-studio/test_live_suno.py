@@ -22,6 +22,10 @@ class _Pipeline:
     def extract_scene_dna(scene, era, beat, name, want, ghost, anchor):
         return {"beat_choice": beat, "char_name": name, "scene_heading": "EXT. BORDER CLIFF", "screen_time_sec": 90}
 
+    @staticmethod
+    def calculate_budget_and_schedule(dna):
+        return [["Crew", "3 days", "1000", ""]], {"shoot_days": 3, "total_physical_usd": 1000}
+
     @classmethod
     def build_lyric_blueprint(cls, dna):
         return "ភ្នំខ្មោច", cls.style, cls.lyrics
@@ -187,6 +191,22 @@ class Tests(unittest.TestCase):
     def test_empty_lyrics_blocked(self):
         out = music("vocal", box2="  ")
         self.assertIn("Box 2", out[0]); self.assertEqual(CALLS, [])
+
+    def test_budget_hidden_by_default(self):
+        os.environ.pop("VO5_FEATURES", None)
+        app = live_suno.build_vo5_synchronicity_live_suno_ui()
+        self.assertNotIn("ថវិកា", json.dumps(app.config, ensure_ascii=False, default=str))
+        self.assertEqual(live_suno.budget_from_state(blueprint()[-1])[0], [])
+
+    def test_budget_when_enabled(self):
+        os.environ["VO5_FEATURES"] = "budget"
+        try:
+            app = live_suno.build_vo5_synchronicity_live_suno_ui()
+            self.assertIn("ថវិកា", json.dumps(app.config, ensure_ascii=False, default=str))
+            rows, note = live_suno.budget_from_state(blueprint()[-1])
+            self.assertEqual(len(rows), 1); self.assertIn("1,000", note)
+        finally:
+            os.environ.pop("VO5_FEATURES", None)
 
     def test_signed_in_user_wins(self):
         req = types.SimpleNamespace(username="real@x")

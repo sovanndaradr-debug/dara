@@ -5,7 +5,7 @@ Two parts (see `lyric-engine/PRODUCT.md`):
 1. **ទំនុកច្រៀង (lyrics):** a script scene or story becomes Box 1 (style) and Box 2 (lyrics). This step is free. Both boxes can be edited, so you can paste lyrics you finished in Lyric Engine.
 2. **តន្ត្រី (music):** Suno sings what is in Box 1 and Box 2, or makes a score. This step spends credits, so it only runs when you press its own button.
 
-Screenwriting output and production budgets are out of scope.
+Other features are kept but hidden from users until these two parts are polished. To try the production budget, set `VO5_FEATURES=budget` on the server.
 
 It needs `vo5_master_synchronicity_pipeline.py` (and optionally `vo5_billing_quota_engine.py`) next to it. Those modules are not in this repository.
 

@@ -9,7 +9,9 @@ Two parts (decision 2026-11-23, see lyric-engine/PRODUCT.md):
      Both boxes stay editable: paste lyrics finished in Lyric Engine here.
   2. តន្ត្រី (music): Box 1 + Box 2 -> Suno MP3 (vocal song and/or score).
      Spends credits, so it only runs on its own button.
-Screenwriting output and production budgets are out of scope.
+Other features are kept but hidden until the two parts are polished. Turn one on
+for testing with VO5_FEATURES, e.g. VO5_FEATURES=budget (production budget and
+schedule from the scene).
 
 Suno routes used (configure SUNO_API_BASE_URL; check them against the API docs
 you have access to):
@@ -63,6 +65,11 @@ MODE_CHOICES = [
     ("ផលិតតែភ្លេង Score (Instrumental)", MODE_SCORE),
     ("ផលិតតែបទចម្រៀង (Vocal)", MODE_VOCAL),
 ]
+
+
+def feature_on(name: str) -> bool:
+    """Hidden features: kept in the code, off for users unless VO5_FEATURES lists them."""
+    return name in [f.strip() for f in os.getenv("VO5_FEATURES", "").split(",") if f.strip()]
 
 
 def server_api_key() -> str:
@@ -236,6 +243,21 @@ def build_blueprint(scene_script: str, era_choice: str, beat_choice: str, char_n
     return ("\n".join(notes), song_title, box1_style, box2_lyrics, score_md, state)
 
 
+# ------------------------------------------------------------------------------
+# Hidden feature "budget": production budget and schedule (off by default)
+# ------------------------------------------------------------------------------
+def budget_from_state(state: Dict[str, Any]):
+    if not feature_on("budget"):
+        return [], "មុខងារនេះត្រូវបានលាក់។"
+    dna = (state or {}).get("scene_dna")
+    if not dna:
+        return [], "⚠️ សូមបង្កើតទំនុកច្រៀងពីស្គ្រីបជាមុនសិន។"
+    rows, summary = VO5MasterSynchronicityPipeline.calculate_budget_and_schedule(dna)
+    note = (f"ថ្ងៃថត {summary.get('shoot_days', '?')} · ថវិកា "
+            f"${float(summary.get('total_physical_usd', 0) or 0):,.2f} (ប៉ាន់ស្មាន៖ ផ្ទៀងផ្ទាត់តម្លៃមុនប្រើ)")
+    return rows, note
+
+
 # ==============================================================================
 # 3. STEP 2 — BLUEPRINT -> SUNO AUDIO (spends credits)
 # ==============================================================================
@@ -375,6 +397,16 @@ def build_vo5_synchronicity_live_suno_ui():
             vocal_audio_player = gr.Audio(label="បទចម្រៀង", type="filepath", interactive=False)
             score_audio_player = gr.Audio(label="ភ្លេង Score", type="filepath", interactive=False)
         suno_links_md = gr.Markdown()
+
+        # ---- Hidden features (VO5_FEATURES) ----
+        if feature_on("budget"):
+            with gr.Accordion("[លាក់] ថវិកា និងពេលវេលាផលិត", open=False):
+                btn_budget = gr.Button("គណនាថវិកា")
+                budget_note = gr.Markdown()
+                budget_table = gr.Dataframe(
+                    headers=["ផ្នែកចំណាយ", "បរិមាណ / រយៈពេល", "ទឹកប្រាក់ប៉ាន់ស្មាន (USD)", "កំណត់សម្គាល់"],
+                    interactive=False, wrap=True)
+            btn_budget.click(fn=budget_from_state, inputs=[blueprint_state], outputs=[budget_table, budget_note])
 
         btn_blueprint.click(
             fn=build_blueprint,
