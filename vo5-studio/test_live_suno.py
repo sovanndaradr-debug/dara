@@ -187,6 +187,14 @@ class Tests(unittest.TestCase):
         payload, w = live_suno.SunoV6LiveEngine.build_payload("t", "ambient", instrumental=True)
         self.assertNotIn("negative_tags", payload)
 
+    def test_persona_is_sent_for_vocals_only(self):
+        out = live_suno.generate_audio({}, "t", "sung in Khmer", "ក", "both", "chirp-v6", "male", "", "e0d7319e-aa2a-44cb-b00a-916218d7cb0b")
+        sent = creates()
+        self.assertNotIn("persona_id", sent[0][2])                       # score
+        self.assertEqual(sent[1][2]["persona_id"], "e0d7319e-aa2a-44cb-b00a-916218d7cb0b")
+        p, _ = live_suno.SunoV6LiveEngine.build_payload("t", "s", lyrics="ក", persona_id='x"; drop')
+        self.assertEqual(p["persona_id"], "xdrop")                       # only id characters pass
+
     def test_invalid_token_is_explained(self):
         FakeSuno.fail_create = True
         out = music("vocal")

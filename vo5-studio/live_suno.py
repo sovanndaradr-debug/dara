@@ -127,7 +127,7 @@ class SunoV6LiveEngine:
     @staticmethod
     def build_payload(title: str, style: str, lyrics: str = "", instrumental: bool = False,
                       duration: Optional[int] = None, model: str = "chirp-v6",
-                      vocal_gender: Optional[str] = None) -> Tuple[Dict[str, Any], List[str]]:
+                      vocal_gender: Optional[str] = None, persona_id: str = "") -> Tuple[Dict[str, Any], List[str]]:
         """Returns the payload and a list of warnings (never cut text silently)."""
         warnings = []
         if len(style) > BOX1_MAX:
@@ -149,6 +149,9 @@ class SunoV6LiveEngine:
             payload["duration"] = int(duration)
         if vocal_gender in ("male", "female") and not instrumental:
             payload["vocal_gender"] = "m" if vocal_gender == "male" else "f"
+        persona = "".join(ch for ch in (persona_id or "").strip() if ch.isalnum() or ch == "-")[:64]
+        if persona and not instrumental:
+            payload["persona_id"] = persona     # a Persona (voice) made through AceData's /suno/persona
         if not instrumental:
             neg = os.getenv("SUNO_NEGATIVE_TAGS", DEFAULT_NEGATIVE_TAGS).strip()
             if neg:
@@ -342,7 +345,7 @@ def _make_track(api_key: str, payload: Dict[str, Any], kind: str, icon: str, pre
 
 
 def generate_audio(state: Dict[str, Any], title: str, box1: str, box2: str, mode: str, model: str,
-                   vocal_gender: str, typed_user_id: str, request: gr.Request = None):
+                   vocal_gender: str, typed_user_id: str, persona_id: str = "", request: gr.Request = None):
     """Part 2 (music). Uses what is in Box 1 / Box 2 now, so edited or pasted lyrics are sung."""
     state = dict(state or {})
     title, box1, box2 = (title or "").strip(), (box1 or "").strip(), (box2 or "").strip()
@@ -384,7 +387,7 @@ def generate_audio(state: Dict[str, Any], title: str, box1: str, box2: str, mode
     if mode in (MODE_BOTH, MODE_VOCAL):
         payload, w = SunoV6LiveEngine.build_payload(
             bp["title"], bp["box1"], lyrics=bp["box2"], instrumental=False, model=model,
-            vocal_gender=vocal_gender)
+            vocal_gender=vocal_gender, persona_id=(persona_id or os.getenv("SUNO_PERSONA_ID", "")))
         warnings += w
         vocal_mp3 = _make_track(api_key, payload, "Vocal Theme Song", "🎤", "vo5_vocal_theme", lines, state)
 
@@ -449,6 +452,7 @@ def build_vo5_synchronicity_live_suno_ui():
             gender_in = gr.Dropdown(label="សំឡេងអ្នកច្រៀង", choices=[("ប្រុស", "male"), ("ស្រី", "female")], value="male")
         with gr.Accordion("ការកំណត់ និងព័ត៌មានភ្លេង", open=False):
             model_in = gr.Dropdown(label="ម៉ូដែល Suno", choices=SUNO_MODELS, value=SUNO_MODELS[0])
+            persona_in = gr.Textbox(label="សំឡេងរបស់អ្នក (Persona ID ពី AceData, ស្រេចចិត្ត)", value="")
             user_id_in = gr.Textbox(label="លេខសម្គាល់សមាជិក (បើមិនបានចូលគណនី)", value="")
             score_md_out = gr.Markdown()
         btn_audio = gr.Button("ផលិតតន្ត្រី (ចំណាយ Suno credit)")
@@ -475,7 +479,7 @@ def build_vo5_synchronicity_live_suno_ui():
         )
         btn_audio.click(
             fn=generate_audio,
-            inputs=[blueprint_state, title_out, box1_out, box2_out, mode_in, model_in, gender_in, user_id_in],
+            inputs=[blueprint_state, title_out, box1_out, box2_out, mode_in, model_in, gender_in, user_id_in, persona_in],
             outputs=[audio_status, score_audio_player, vocal_audio_player, suno_links_md, blueprint_state],
         )
     return app
