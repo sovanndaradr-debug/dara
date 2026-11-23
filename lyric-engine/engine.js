@@ -177,8 +177,9 @@
       var visible = syl.filter(function (s) { return s.text; });
       var last = null;
       for (var i = syl.length - 1; i >= 0; i--) if (syl[i].rime) { last = syl[i]; break; }
-      return { text: raw, syllables: visible.map(function (s) { return { text: s.text, rime: s.rime, vowel: s.vowel }; }),
-               count: syl.length, approx: syl.some(function (s) { return s.approx; }), endRime: last ? last.rime : null, group: null,
+      var minors = visible.filter(function (s) { return s.minor; }).length;   // classical poets may leave minor syllables uncounted
+      return { text: raw, syllables: visible.map(function (s) { return { text: s.text, rime: s.rime, vowel: s.vowel, minor: !!s.minor }; }),
+               count: syl.length, min: syl.length - minors, approx: syl.some(function (s) { return s.approx; }), endRime: last ? last.rime : null, group: null,
                techniques: techniques(syl) };
     });
     // rhyme groups: line endings that share a rime with another line ending

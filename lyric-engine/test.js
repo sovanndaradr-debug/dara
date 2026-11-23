@@ -186,3 +186,9 @@ for (const [w, want] of [['មិត្រ', 'មិត្រ'], ['បុត្�
 // a verse with no metre is still not forced into one
 assert.strictEqual(E.guessMeter('ច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ\nប៉ុន្តែមាសមេអ្នកនៅសែនឆ្ងាយ\nថ្ងៃណាបាននែបនិត្យកាយ'), null);
 console.log('corpus lessons passed');
+
+// count range: minor syllables are sung in lyrics but classical poets may leave them out
+const rng = E.analyze('ធម្មតាកើតជាមនុស្ស').lines[0];
+assert.strictEqual(rng.count, 7); assert.strictEqual(rng.min, 5);
+assert.strictEqual(E.analyze('ខ្ញុំស្រលាញ់អូន').lines[0].min, E.analyze('ខ្ញុំស្រលាញ់អូន').lines[0].count - 1);
+console.log('count range passed');
