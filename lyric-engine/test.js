@@ -101,3 +101,53 @@ for (const [name, t] of [['គោព័ទ្ធស្នឹង', gopoat], ['អ
   console.log('pheak7', name, 'score', f.score.toFixed(2));
 }
 assert.strictEqual(E.fitMeter(gopoat, 'pheak7').score, 1);
+
+
+// ច្បាប់ប្រុស (km.wikipedia), ព្រហ្មគីតិ ៥-៦-៥-៦ — the first six of 96 stanzas
+const chbab = `នេះបទព្រហ្មគីតិ
+ពីព្រេងព្រឹទ្ធទុកទូន្មាន
+ចែងចងជានិទាន
+ទុកគ្រាន់មើលជាច្បាប់ថ្មី។
+ឲ្យអស់កូនចៅក្រោយ
+ស្ដាប់កុំឲ្យភ្លេចស្មារតី
+ប្រដៅទាំងប្រុសស្រី
+យកទុកខ្លួនគ្រប់អាត្មា។
+ធម្មតាកើតជាមនុស្ស
+ទោះស្រីប្រុសក្រណាស់ណា
+ក្រគិតក្នុងចិន្ដា
+ឲ្យបានដឹងសមនិងគួរ។
+នឹងអស់ញាតិសន្ដាន
+សោះគេមានពាក្យថាជួ
+កុំឆ្មើងកុំតែងតួ
+ធ្វើកំប៉ោងកុំពាក្យធំ។
+នឹងដើរដូចភុជង្គ
+ឲ្យឱនអង្គអាចបារម្ភ
+ឲ្យត្រូវនឹងច្បាប់ក្រម
+គួរប្រតិបត្តិកុំឲ្យឆ្គង។
+រៀនបទរៀនបាទចាស៎
+កុំច្រឡាសលើរៀមច្បង
+ស្រដីនឹងអ្នកផង
+ពាក្យឲ្យគួរកុំឯងវ៉ី។`;
+const fb = E.fitMeter(chbab, 'brahmagiti');
+fb.stanzas.forEach(st => assert.strictEqual(st.syllables, 22));
+assert.strictEqual(fb.stanzas[2].merged, 2);                 // ធម·ម·តា … ម·នុស្ស: minor syllables fold when a line is too long
+assert.ok(fb.score >= 0.9, 'brahmagiti score ' + fb.score);
+assert.strictEqual(E.guessMeter(chbab).id, 'brahmagiti');
+console.log('brahmagiti ច្បាប់ប្រុស score', fb.score.toFixed(2));
+// segmentation lessons from the same poem
+assert.strictEqual(sy('ប្រយ័ត្ន'), 'ប្រ·យ័ត្ន');               // ័ is a vowel
+assert.strictEqual(sy('ប្រពន្ធ'), 'ប្រ·ពន្ធ');                 // silent ្ធ closes ព, not ប្រ
+assert.strictEqual(sy('ឪពុកផ្ដាំ'), 'ឪ·ពុក·ផ្ដាំ');            // ផ្ដ starts a syllable
+assert.strictEqual(sy('ឆ្កួតល្បែង'), 'ឆ្កួត·ល្បែង');
+assert.strictEqual(E.analyze('ទៅកម្សាន្ត').lines[0].count, 3);
+assert.strictEqual(sy('ដូចចិត្ត។'), 'ដូច·ចិត្ត');               // ។ is not a consonant
+assert.strictEqual(E.analyze('កេរ្តិ៍').lines[0].count, 1);      // ៍ silences
+assert.strictEqual(sy('ស្រីស្រដី'), 'ស្រី·ស្រ·ដី');             // ្រ is never silent
+// classical rhymes (non-strict only); lyrics keep the strict house rule
+const pair = (a, b, strict) => { const s = E.analyze(a + ' ' + b).lines[0].syllables; return E.rhymeKind(s[0], s[1], { strict }); };
+for (const [a, b] of [['ក្រោយ', 'ឲ្យ'], ['ងាប់', 'ខ្ជាប់'], ['ទាំ', 'ចាំ'], ['អាល័យ', 'ថ្ងៃ'], ['វិញ', 'ចេញ'], ['កុំ', 'បារម្ភ'], ['ប្អូន', 'ខ្លួន']]) {
+  const A = E.analyze(a).lines[0].syllables, B = E.analyze(b).lines[0].syllables;
+  assert.ok(E.rhymeKind(A[A.length - 1], B[B.length - 1], { strict: false }), a + '/' + b);
+}
+assert.strictEqual(pair('វិញ', 'ចេញ', true), null);
+console.log('classical rhymes passed');

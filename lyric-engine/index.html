@@ -382,6 +382,9 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
   var ONSET_SUBS = 'រលវយនមងញ';
   // consonants that often stand alone as a minor syllable before a vowel syllable: រ·បៀប ក·ន្លែង ស·ម្រាប់ ម·នុស្ស
   var MINOR_ONSETS = 'កគចជតទបពភរលសម';
+  // A subscript cluster whose base is a nasal closes the syllable before it (រណ្តៅ ចម្ការ កម្សាន្ត លម្អិត);
+  // other bases start a syllable (ពុក·ផ្ដាំ ឆ្កួត·ល្បែង), and so do the common initials ម្ដ ម្ត ម្ច (ម្ដាយ ម្ចាស់)
+  function closesBefore(cl) { return 'ងញណនម'.indexOf(cl.base) >= 0 && !(cl.base === 'ម' && 'ដតច'.indexOf(cl.subs[0]) >= 0); }
   var FINAL_CLASS = {};
   [['k', 'កខគឃ'], ['ng', 'ង'], ['c', 'ចឆជឈ'], ['nh', 'ញ'], ['t', 'ដឋឌឍតថទធ'], ['n', 'ណន'],
    ['p', 'បផពភ'], ['m', 'ម'], ['y', 'យ'], ['', 'រ'], ['l', 'លឡ'], ['w', 'វ'], ['h', 'សឝឞហ'], ['', 'អ']]
@@ -389,7 +392,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
   // Words whose written form breaks the rules (a silent final vowel). Grows as people correct counts.
   // Words whose written form breaks the rules: their real syllables, written out. Grows as people correct counts.
   var EXCEPTIONS = { 'ជាតិ': ['ជាតិ'], 'ធាតុ': ['ធាតុ'], 'ហេតុ': ['ហេតុ'], 'ប្រវត្តិ': ['ប្រ', 'វត្តិ'],
-    'ធម្មតា': ['ធម', 'ម', 'តា'], 'ធម្មជាតិ': ['ធម', 'ម', 'ជាតិ'], 'នគរ': ['ន', 'គរ'], 'សីលធម៌': ['សី', 'ល', 'ធម៌'], 'កន្លែង': ['កន', 'លែង'], 'សិទ្ធិ': ['សិទ្ធិ'], 'សិទិ្ធ': ['សិទិ្ធ'] };
+    'ធម្មតា': ['ធម', 'ម', 'តា'], 'ធម្មជាតិ': ['ធម', 'ម', 'ជាតិ'], 'នគរ': ['ន', 'គរ'], 'ញាតិ': ['ញាតិ'], 'មនុស្ស': ['ម', 'នុស្ស'], 'សីលធម៌': ['សី', 'ល', 'ធម៌'], 'កន្លែង': ['កន', 'លែង'], 'សិទ្ធិ': ['សិទ្ធិ'], 'សិទិ្ធ': ['សិទិ្ធ'] };
 
   // 1. Khmer orthographic clusters: base (+ coeng subscripts) + vowels and marks
   function clusters(run) {
@@ -400,7 +403,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       while (i < run.length) {
         var d = run[i];
         if (d === COENG && i + 1 < run.length && isCons(run[i + 1])) { cl.subs.push(run[i + 1]); cl.text += d + run[i + 1]; i += 2; }
-        else if (isDepVowel(d)) { cl.vowels += d; cl.text += d; i++; }
+        else if (isDepVowel(d) || d === '\u17D0') { cl.vowels += d; cl.text += d; i++; }   // ័ (short a) acts as a vowel: ប្រ·យ័ត្ន
         else if (isKhmerMark(d)) { cl.marks += d; cl.text += d; i++; }
         else break;
       }
@@ -409,7 +412,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     return out;
   }
   function hasNucleus(cl) { return cl.vowels.length > 0 || /[ំះៈ]/.test(cl.marks) || isIndepVowel(cl.base); }
-  function isFinalMarked(cl) { return !cl.vowels && /[់៌៍]/.test(cl.marks); }
+  function isFinalMarked(cl) { return (!cl.vowels && /[់៌៍]/.test(cl.marks)) || /៍/.test(cl.marks); }   // ៍ silences its vowel too: កេរ្តិ៍
 
   // 2. Clusters -> syllables. Returns [{text, rime, approx}]
   function khmerSyllables(run) {
@@ -426,7 +429,8 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       if (cl.base === '\u17A2' && bare && cl.subs.length === 0 && !isFinalMarked(cl)) canTakeFinal = false;   // អ is never a final (ណ្តៅ|អបាយ)
       if (cur && cur.nikahitOnly && bare && cl.subs.length === 0 && cl.base === 'ង' && !cur.fin) { attach(cur, cl); continue; }   // ាំង
       if (canTakeFinal && isFinalMarked(cl)) { attach(cur, cl); continue; }
-      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base)) { attach(cur, cl); continue; }   // inherent vowel + final: រង, ជន
+      var silentNext = next && isCons(next.base) && next.subs.length && !hasNucleus(next) && !isFinalMarked(next) && ONSET_SUBS.indexOf(next.subs[0]) < 0 && !(cls[k + 2] && (isFinalMarked(cls[k + 2]) || !hasNucleus(cls[k + 2])));
+      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base) && !silentNext) { attach(cur, cl); continue; }   // inherent vowel + final: រង, ជន
       if (canTakeFinal && bare && cl.subs.length === 0) {
         // A run of bare consonants after an open syllable pairs up as (onset + final):
         // odd run -> the first one closes the open syllable (រៀ|ន រស់), even run -> they pair (ត្រី|ផង, ប្រើ|អញ, ឱ្យ|យល់)
@@ -439,7 +443,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
           if (isCons(c2.base) && c2.subs.length && !hasNucleus(c2) && !isFinalMarked(c2) && ONSET_SUBS.indexOf(c2.subs[0]) < 0 && !(cls[q + 1] && isFinalMarked(cls[q + 1]))) n++;   // not គ្រ|ប់
           // ណ in រណ្តៅ, ម in លម្អិត: the base of a following subscript cluster is heard as a final when the
           // subscript is the real onset (a stop); with ្រ ្ល ្វ ្យ ្ន ្ម ្ង ្ញ ្ហ the base is the onset (ក្រុង)
-          if (isCons(c2.base) && c2.subs.length && hasNucleus(c2) && ONSET_SUBS.indexOf(c2.subs[0]) < 0) n++;
+          if (isCons(c2.base) && c2.subs.length && hasNucleus(c2) && closesBefore(c2)) n++;   // ល·ម្អិត, but ពុក·ផ្ដាំ
           break;
         }
         // ...unless the run ends in a likely minor syllable before a vowel syllable: ម្អិ|ត រ·បៀប (not ម្អិ·តរ)
@@ -447,23 +451,25 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
         var minorEnd = n >= 2 && n % 2 === 0 && after && hasNucleus(after) && lastRun && !isFinalMarked(lastRun) && MINOR_ONSETS.indexOf(lastRun.base) >= 0;
         if (n % 2 === 1 || minorEnd) { attach(cur, cl); continue; }
       }
-      if (canTakeFinal && bare && cl.subs.length > 0) {
+      if (canTakeFinal && bare && cl.subs.length > 0 && 'រល'.indexOf(cl.subs[0]) < 0) {   // ស្រី·ស្រ·ដី: ្រ ្ល are never silent
         // a subscript cluster with no vowel ends the syllable unless a bare consonant follows (សង្គម vs ចន្ទ)
-        var nextBare = next && !hasNucleus(next) && !isFinalMarked(next) && next.subs.length === 0;   // សង្គម (ម follows) vs បុណ្យ|អ្នក
+        var nextBare = next && isCons(next.base) && !hasNucleus(next) && !isFinalMarked(next) && next.subs.length === 0;   // សង្គម (ម follows) vs បុណ្យ|អ្នក
         if (!nextBare) { attach(cur, cl); cur.approx = true; continue; }
         cur.approx = true;
       }
       var indepClosed = isIndepVowel(cl.base) && cl.subs.length > 0;   // ឲ្យ ឱ្យ end in -y
       cur = { text: cl.text, base: cl.base, subs: cl.subs.slice(), vowels: cl.vowels, marks: cl.marks, fin: '', closed: /[ំះៈ៏]/.test(cl.marks), nikahitOnly: /ំ/.test(cl.marks) && !/[ះៈ]/.test(cl.marks), approx: false };
-      if (indepClosed) cur.closed = true;
+      if (indepClosed) { cur.closed = true; cur.fin = cl.subs[0]; }
       syl.push(cur);
     }
     function attach(s, cl) { s.text += cl.text; s.fin = cl.base; s.closed = true; }
-    return syl.map(function (s) {
+    return syl.map(function (s, i) {
+      // a minor syllable (ម·នុស្ស ក·ម្លាំង ប·ន្លា): bare inherent vowel inside a word; classical poets may count it as half
+      var minor = i < syl.length - 1 && !s.vowels && !s.fin && !s.marks && isCons(s.base) && !s.approx;
       var fin = s.fin ? (FINAL_CLASS[s.fin] !== undefined ? FINAL_CLASS[s.fin] : s.fin) : '';
       var r = khmerRime(s);
-      return { text: s.text, rime: r, vowel: r.split(':').slice(1).join(':'),
-               onset: s.base + s.subs.join(''), approx: s.approx };
+      return { text: s.text, rime: r, vowel: s.written,
+               onset: s.base + s.subs.join(''), approx: s.approx, minor: minor };
     });
   }
   function khmerRime(s) {
@@ -474,6 +480,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     var fin = s.fin ? (FINAL_CLASS[s.fin] !== undefined ? FINAL_CLASS[s.fin] : s.fin) : '';
     var v = (s.vowels || '-') + nasal;
     if (isIndepVowel(s.base)) { series = 'a'; v = INDEP[s.base] || s.base; }
+    s.written = v + ':' + (s.marks.indexOf('ះ') >= 0 && !fin ? 'h' : fin);
     if (/^[\u17BD\u17C0\u17BF]/.test(v)) series = '*';   // ួ ៀ ឿ rhyme across អឃោសៈ / ឃោសៈ (house rule)    // ឯង sounds like -ែង
     if (s.marks.indexOf('ះ') >= 0 && !fin) fin = 'h';                     // ចុះ rhymes with ខុស
     if (series === 'a' && v === '\u17B6\u17C6' && !fin) { v = '-'; fin = 'm'; }
@@ -511,9 +518,10 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
           for (var k = 0; k < keys.length; k++) if (run.substr(i, keys[k].length) === keys[k]) { hit = keys[k]; break; }
           if (hit) {
             if (buf) { out = out.concat(khmerSyllables(buf)); buf = ''; }
-            EXCEPTIONS[hit].forEach(function (piece) {
+            EXCEPTIONS[hit].forEach(function (piece, pi, all) {
               var ps = khmerSyllables(piece), last = ps[ps.length - 1] || {};
-              out.push({ text: piece, rime: last.rime || null, vowel: last.vowel, onset: last.onset, approx: false });
+              var minor = pi < all.length - 1 && /^[ក-អ]$/.test(piece);   // ធម·ម·តា ម·នុស្ស
+              out.push({ text: piece, rime: last.rime || null, vowel: last.vowel, onset: last.onset, approx: false, minor: minor });
             });
             i += hit.length;
           } else { buf += run[i]; i++; }
@@ -533,7 +541,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       var visible = syl.filter(function (s) { return s.text; });
       var last = null;
       for (var i = syl.length - 1; i >= 0; i--) if (syl[i].rime) { last = syl[i]; break; }
-      return { text: raw, syllables: visible.map(function (s) { return { text: s.text, rime: s.rime }; }),
+      return { text: raw, syllables: visible.map(function (s) { return { text: s.text, rime: s.rime, vowel: s.vowel }; }),
                count: syl.length, approx: syl.some(function (s) { return s.approx; }), endRime: last ? last.rime : null, group: null,
                techniques: techniques(syl) };
     });
@@ -577,7 +585,8 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       cross: { from: [7, 4], to: [3, 4] }, mood: 'ពណ៌នាទីកន្លែង តួអង្គ ធម្មជាតិ ផ្តើមរឿង ពេលខ្លះសម្តែងទុក្ខសោក' },
     { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [2, 3], stressNote: 'ព្យាង្គ២ ក្នុងឃ្លា៥ព្យាង្គ · ព្យាង្គ៣ ក្នុងឃ្លា៦ព្យាង្គ', verified: true, use: 'ការអប់រំ ទូន្មាន បរិយាកាសឧត្តុង្គឧត្តម', tempo: ['festive'],
       note: 'ប្រភព ៤ (វិគីភីឌា studykhmer learnkhmer24 rosveasna) ថា ៥-៦-៥-៦',
-      links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }, { from: [3, 5], to: [[4, 3]] }],
+      // ច្បាប់ប្រុស (៩៦ វគ្គ): ១:៥→២:៣ និង ២:៦→៣:៥ ជួនស្ទើរគ្រប់វគ្គ; ៣:៥→៤:៣ កម្រជួនណាស់ (៦/៦០) ដូច្នេះមិនបានដាក់ជាច្បាប់
+      links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }],
       cross: { from: [4, 6], to: [2, 6] }, mood: 'ភាពលន្លង់លន្លោច ទុក្ខសោក ការព្រាត់ប្រាស ប្រដៅ ផ្តែផ្តាំ ការឈឺចាប់' },
     { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true, use: 'ភាពរន្ធត់ តានតឹង ការផ្លាស់ប្តូរភ្ញាក់ផ្អើល Hard Trap', tempo: ['fast', 'drama'],
       links: [{ from: [1, 6], to: [[2, 4]] }],
@@ -636,7 +645,21 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     if (a.text === b.text) return 'repeat';                  // the same syllable repeated: allowed, sometimes required
     if (a.rime && a.rime === b.rime) return 'sound';         // same vowel sound, final sound and series
     if (!strict && a.vowel && a.vowel === b.vowel) return 'written';
+    if (!strict && a.rime && b.rime && classicalKey(a.rime) === classicalKey(b.rime)) return 'classical';
     return null;
+  }
+  /* Sounds that classical poets rhyme across series, each seen more than once in ច្បាប់ប្រុស (ព្រហ្មគីតិ):
+     អាល័យ/ថ្ងៃ, ហ័ស/ណាស់, វិញ/ចេញ, កុំ/បារម្ភ, អប្រិយ/ចី, ប្អូន/ខ្លួន. Not used for lyrics (strict). */
+  function classicalKey(r) {
+    var p = r.split(':'), se = p[0], v = p[1], f = p[2];
+    if (v === '\u17D0' && f === 'y') return 'a:\u17C3:';          // ័យ = ៃ
+    if (v === '\u17D0') v = '\u17B6';                            // ័ = short ា
+    if (v === '\u17B7' && f === 'y') { v = '\u17B8'; f = ''; }      // ិយ = ី
+    if (se === 'o' && v === '\u17B7' && f === 'nh') return 'a:\u17C1:nh';   // វិញ = ចេញ
+    if (se === 'a' && v === '\u17BB\u17C6' && !f) return 'o:-:m';  // កុំ = -ម្ភ
+    if (v === '\u17BD') v = '\u17BC';                            // ួ ≈ ូ (ប្អូន/ខ្លួន)
+    if (se === '*') se = 'a';
+    return (v === '\u17BC' ? '*' : se) + ':' + v + ':' + f;
   }
 
   function syllablesOf(text) {
@@ -656,7 +679,19 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     if (!m) return null;
     var need = m.lines.reduce(function (a, b) { return a + b; }, 0);
     var sts = stanzas(text).map(function (t) {
-      var syl = syllablesOf(t), lines = [], k = 0;
+      var syl = syllablesOf(t), lines = [], k = 0, merged = 0;
+      // Line by line, a line that is too long may fold its minor syllables into the next one (ម·នុស្ស -> មនុស្ស)
+      var vis = String(t).split(/\r?\n/).filter(function (l) { return syllablesOf(l).length; });
+      if (vis.length === m.lines.length && syl.length !== need) {
+        syl = [];
+        vis.forEach(function (l, li) {
+          var ls = syllablesOf(l);
+          for (var j = 0; ls.length > m.lines[li] && j < ls.length - 1; j++) {
+            if (ls[j].minor) { var nx = ls[j + 1]; ls.splice(j, 2, { text: ls[j].text + nx.text, rime: nx.rime, vowel: nx.vowel }); merged++; j--; }
+          }
+          syl = syl.concat(ls);
+        });
+      }
       m.lines.forEach(function (n) { lines.push(syl.slice(k, k + n)); k += n; });
       var at = function (p) { var l = lines[p[0] - 1]; return l && l[p[1] - 1]; };
       var links = m.links.map(function (ln) {
@@ -672,7 +707,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
         var a = links[pair[0]].found || links[pair[0]].near, b = links[pair[1]].found || links[pair[1]].near;
         return { links: pair, same: !!(a && b && a.pos[1] === b.pos[1]), positions: [a ? a.pos[1] : null, b ? b.pos[1] : null] };
       });
-      return { syllables: syl.length, expected: need, lines: lines.map(function (l) { return l.map(function (s) { return s.text; }); }), links: links, consistency: consistency };
+      return { syllables: syl.length, expected: need, merged: merged, lines: lines.map(function (l) { return l.map(function (s) { return s.text; }); }), links: links, consistency: consistency };
     });
     var cross = [];
     if (m.cross) for (var i = 0; i + 1 < sts.length; i++) {
