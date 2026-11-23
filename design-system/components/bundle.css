@@ -1,5 +1,5 @@
 /* Lyric Engine — component styles, exact to the source page; colours, spacing and radii come from tokens.css */
-.le-page { color: var(--color); background: var(--background); font-family: var(--font-sans); font-size: 16px; }
+.le-page { color: var(--color); background: var(--background); font-family: var(--font-sans); font-size: 16px; line-height: 1.15; }
 .le-page p { margin: 0; }
 .le-main { max-width: var(--width-main); padding: var(--space-page); margin: auto; font-size: 16px; }
 .le-main > div { margin-bottom: var(--space-section); }
@@ -16,6 +16,7 @@
   border-radius: var(--radius-pill);
   font-family: var(--font-sans);
   font-size: 16px;
+  line-height: 1.15;
   cursor: pointer;
 }
 .le-button:focus-visible, .le-select:focus-visible, .le-checkbox:focus-visible, .le-radio:focus-visible {
@@ -25,6 +26,8 @@
 .le-button.fail { background: var(--color-copy-fail-background); border-color: var(--color-copy-fail-border); }
 
 .le-label * { vertical-align: middle; }
+.le-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.le-fieldset > legend { padding: 0; }
 .le-checkbox, .le-radio {
   margin: 0 var(--space-control) 0 0;
   appearance: none; -webkit-appearance: none;
@@ -46,6 +49,10 @@
   background-color: transparent; transition: width 200ms, height 200ms, left 200ms, top 200ms, background-color 100ms;
 }
 .le-radio:checked::after { background-color: var(--color-primary); left: 2px; top: 2px; width: 16px; height: 16px; }
+/* Accessible themes: the checked radio becomes a primary ring on the page colour with a smaller dot, so the state reads at >= 3:1 */
+[data-theme^="accessible"] .le-radio:checked { background-color: var(--background); box-shadow: inset 0 0 0 2px var(--color-primary); }
+[data-theme^="accessible"] .le-radio:checked:focus-visible { box-shadow: var(--shadow-focus), inset 0 0 0 2px var(--color-primary); }
+[data-theme^="accessible"] .le-radio:checked::after { left: 5px; top: 5px; width: 10px; height: 10px; }
 
 .le-link { color: var(--color-primary); text-decoration-color: transparent; transition: text-decoration 200ms, color 200ms; }
 .le-link:hover { text-decoration: underline; text-decoration-color: currentColor; }
@@ -53,7 +60,8 @@
 
 .le-command {
   font-family: var(--font-mono); margin-left: var(--space-indent); background: var(--color-code-block);
-  padding: var(--space-control); display: block; overflow-x: auto; color: var(--color);
+  padding: var(--space-control); display: block; overflow-x: auto; color: var(--color); line-height: 1.15;
 }
 .le-command ul { list-style: '$ '; margin: 0; }
+.le-command li { white-space: pre; }
 .le-indent { margin-left: var(--space-indent); }
