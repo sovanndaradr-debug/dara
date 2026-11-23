@@ -11,8 +11,10 @@ It needs `vo5_master_synchronicity_pipeline.py` (and optionally `vo5_billing_quo
 
 ```bash
 pip install gradio
-export SUNO_API_KEY=...                 # server side only; never typed into the page
-export SUNO_API_BASE_URL=https://...    # check the routes against the Suno API docs you use
+export SUNO_API_KEY=...                 # AceData Cloud token; server side only, never typed into the page
+# Suno through AceData Cloud (default base URL https://api.acedata.cloud):
+# POST /suno/audios to create, POST /suno/tasks {"action":"retrieve"} to poll.
+# Models: chirp-v6, chirp-v6-wild, chirp-v6-mini.
 python vo5-studio/live_suno.py          # serves on 127.0.0.1:7860
 ```
 

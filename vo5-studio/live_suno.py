@@ -13,16 +13,18 @@ Other features are kept but hidden until the two parts are polished. Turn one on
 for testing with VO5_FEATURES, e.g. VO5_FEATURES=budget (production budget and
 schedule from the scene).
 
-Suno routes used (configure SUNO_API_BASE_URL; check them against the API docs
-you have access to):
-  POST /audio                 create
-  GET  /audio/{id}            status (poll)
+Suno through AceData Cloud (https://platform.acedata.cloud/documents/suno-audios):
+  POST /suno/audios   {"action":"generate","custom":true,"lyric","title","style",
+                       "instrumental","model":"chirp-v6","async":true} -> {"task_id"}
+  POST /suno/tasks    {"action":"retrieve","id":task_id} -> response.data[] with
+                       id, state ("succeeded"), audio_url, duration
+A create is never re-sent automatically (that would make and bill a new song):
+an unfinished task is looked up again by its task_id.
 Secrets stay on the server: SUNO_API_KEY is read from the environment and is
 never sent to the browser.
 ================================================================================
 """
 
-import hashlib
 import json
 import os
 import tempfile
@@ -53,7 +55,8 @@ except ImportError:
 # ==============================================================================
 # 0. CONFIGURATION (server side only)
 # ==============================================================================
-SUNO_API_BASE_URL = os.getenv("SUNO_API_BASE_URL", "https://api.suno.com/v0")
+SUNO_API_BASE_URL = os.getenv("SUNO_API_BASE_URL", "https://api.acedata.cloud")
+SUNO_MODELS = ["chirp-v6", "chirp-v6-wild", "chirp-v6-mini"]
 BOX1_MAX = 120            # Box 1 Golden Formula
 BOX2_MAX = 5000           # lyrics limit sent to Suno
 MP3_MAX_BYTES = 40 * 1024 * 1024
@@ -81,89 +84,98 @@ def server_api_key() -> str:
 # 1. SUNO CLIENT
 # ==============================================================================
 class SunoV6LiveEngine:
-    """Create, poll and download Suno clips. Every method returns data; none raises."""
+    """Create, poll and download Suno songs through AceData Cloud. Every method returns data; none raises."""
 
     @staticmethod
-    def _http_request(method: str, endpoint: str, api_key: str,
-                      payload: Optional[Dict[str, Any]] = None,
-                      extra_headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    def _post(endpoint: str, api_key: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{SUNO_API_BASE_URL.rstrip('/')}/{endpoint.lstrip('/')}"
         headers = {
-            "Authorization": f"Bearer {api_key.strip()}",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "authorization": f"Bearer {api_key.strip()}",
+            "content-type": "application/json",
+            "accept": "application/json",
         }
-        if extra_headers:
-            headers.update(extra_headers)
-        body = json.dumps(payload).encode("utf-8") if payload is not None else None
-        req = urllib.request.Request(url, data=body, headers=headers, method=method)
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=60) as resp:
                 return json.loads(resp.read().decode("utf-8") or "{}")
         except urllib.error.HTTPError as e:
-            return {"error": True, "status_code": e.code,
-                    "message": e.read().decode("utf-8", errors="ignore")[:500]}
+            body = e.read().decode("utf-8", errors="ignore")
+            try:
+                data = json.loads(body)
+            except ValueError:
+                data = {"error": {"message": body[:300]}}
+            data.setdefault("error", {}).setdefault("message", f"HTTP {e.code}")
+            data["status_code"] = e.code
+            return data
         except Exception as e:  # network, timeout, bad JSON
-            return {"error": True, "status_code": 0, "message": str(e)[:500]}
+            return {"error": {"message": str(e)[:300], "code": "network"}}
 
     @staticmethod
-    def idempotency_key(payload: Dict[str, Any]) -> str:
-        """Same request -> same key, so a retry never creates (and bills) a second song."""
-        canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False)
-        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:32]
+    def error_text(resp: Dict[str, Any]) -> str:
+        err = resp.get("error")
+        if isinstance(err, dict):
+            msg = err.get("message") or err.get("code") or "error"
+            if err.get("code") == "invalid_token":
+                msg += " (SUNO_API_KEY មិនត្រឹមត្រូវ)"
+            return str(msg)[:300]
+        return str(err or "Suno មិនបានផ្តល់ task_id")[:300]
 
     @staticmethod
     def build_payload(title: str, style: str, lyrics: str = "", instrumental: bool = False,
-                      duration: Optional[int] = None, model: str = "v6",
+                      duration: Optional[int] = None, model: str = "chirp-v6",
                       vocal_gender: Optional[str] = None) -> Tuple[Dict[str, Any], List[str]]:
         """Returns the payload and a list of warnings (never cut text silently)."""
         warnings = []
         if len(style) > BOX1_MAX:
             warnings.append(f"Box 1 មាន {len(style)} តួអក្សរ (លើស {BOX1_MAX})៖ ត្រូវបានកាត់។")
         payload: Dict[str, Any] = {
-            "title": title[:256],
+            "action": "generate",
+            "custom": True,
+            "title": title[:100],
             "style": style[:BOX1_MAX],
             "instrumental": bool(instrumental),
-            "model": model,
+            "model": model or "chirp-v6",
+            "async": True,
         }
         if not instrumental and lyrics:
             if len(lyrics) > BOX2_MAX:
                 warnings.append(f"Box 2 មាន {len(lyrics)} តួអក្សរ (លើស {BOX2_MAX})៖ ត្រូវបានកាត់។")
-            payload["lyrics"] = lyrics[:BOX2_MAX]
-        if duration and 15 <= int(duration) <= 360:
+            payload["lyric"] = lyrics[:BOX2_MAX]
+        if duration and 10 <= int(duration) <= 360:
             payload["duration"] = int(duration)
         if vocal_gender in ("male", "female") and not instrumental:
-            payload["vocal_gender"] = vocal_gender
+            payload["vocal_gender"] = "m" if vocal_gender == "male" else "f"
         return payload, warnings
 
     @classmethod
     def audio_create(cls, api_key: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        return cls._http_request("POST", "/audio", api_key, payload,
-                                 {"Idempotency-Key": cls.idempotency_key(payload)})
+        """Submit once. Returns {"task_id": ...} or an error. Never re-sent automatically."""
+        return cls._post("/suno/audios", api_key, payload)
 
     @staticmethod
-    def clip_ids(resp: Dict[str, Any]) -> List[str]:
-        ids = resp.get("clip_ids") or ([resp["id"]] if resp.get("id") else [])
-        return [str(i) for i in ids][:2]
+    def songs_of(task: Dict[str, Any]) -> List[Dict[str, Any]]:
+        inner = task.get("response") if isinstance(task.get("response"), dict) else task
+        data = inner.get("data") if isinstance(inner, dict) else None
+        return [d for d in (data or []) if isinstance(d, dict)]
 
     @classmethod
-    def audio_wait(cls, api_key: str, clip_ids: List[str], max_wait_sec: int = 120,
-                   poll_interval_sec: int = 4) -> List[Dict[str, Any]]:
-        """Poll until each clip is 'complete' or 'error'. A clip still 'streaming' at the
-        deadline is returned as is: it can be previewed, but is not downloaded."""
+    def task_wait(cls, api_key: str, task_id: str, max_wait_sec: int = 240,
+                  poll_interval_sec: int = 5) -> Dict[str, Any]:
+        """Look the task up until every song has a final state, or the time runs out.
+        Returns {"songs": [...], "done": bool, "error": str}."""
         deadline = time.time() + max_wait_sec
-        last: Dict[str, Dict[str, Any]] = {}
+        songs: List[Dict[str, Any]] = []
         while True:
-            pending = [c for c in clip_ids if str(last.get(c, {}).get("status", "")).lower() not in ("complete", "error")]
-            for cid in pending:
-                res = cls._http_request("GET", f"/audio/{urllib.parse.quote(cid, safe='')}", api_key)
-                if not res.get("error"):
-                    last[cid] = res
-            pending = [c for c in clip_ids if str(last.get(c, {}).get("status", "")).lower() not in ("complete", "error")]
-            if not pending or time.time() + poll_interval_sec > deadline:
-                break
+            res = cls._post("/suno/tasks", api_key, {"action": "retrieve", "id": task_id})
+            inner = res.get("response") if isinstance(res.get("response"), dict) else {}
+            if inner.get("success") is False or (res.get("error") and res.get("status_code") in (400, 401, 403)):
+                return {"songs": cls.songs_of(res), "done": True, "error": cls.error_text(inner or res)}
+            songs = cls.songs_of(res) or songs
+            if songs and all(str(x.get("state", "")).lower() in ("succeeded", "failed") for x in songs):
+                return {"songs": songs, "done": True, "error": ""}
+            if time.time() + poll_interval_sec > deadline:
+                return {"songs": songs, "done": False, "error": ""}
             time.sleep(poll_interval_sec)
-        return [last.get(cid, {"id": cid, "status": "timeout"}) for cid in clip_ids]
 
     @staticmethod
     def download_mp3_to_local(audio_url: str, prefix: str = "vo5_suno") -> Optional[str]:
@@ -297,20 +309,25 @@ def resolve_user(typed_user_id: str, request: Optional[gr.Request]) -> str:
 def _make_track(api_key: str, payload: Dict[str, Any], kind: str, icon: str, prefix: str,
                 lines: List[str], state: Dict[str, Any]) -> Optional[str]:
     resp = SunoV6LiveEngine.audio_create(api_key, payload)
-    ids = SunoV6LiveEngine.clip_ids(resp)
-    if not ids:
-        lines.append(f"- ❌ **{kind}:** `{resp.get('message', 'Suno មិនបានផ្តល់ clip id')}`")
+    task_id = str(resp.get("task_id") or "")
+    if not task_id or resp.get("error"):
+        lines.append(f"- ❌ **{kind}:** `{SunoV6LiveEngine.error_text(resp)}`")
         return None
+    result = SunoV6LiveEngine.task_wait(api_key, task_id)
+    state["suno_tasks"] = state.get("suno_tasks", []) + [{"type": kind, "task_id": task_id}]
+    if result["error"]:
+        lines.append(f"- ❌ **{kind}:** `{result['error']}` (task `{task_id}`)")
+    elif not result["done"]:
+        lines.append(f"- ⏳ **{kind}:** Suno មិនទាន់ចប់ទេ។ កុំចុចម្តងទៀត (នឹងគិតលុយបទថ្មី)៖ task `{task_id}` អាចរកមើលពេលក្រោយបាន។")
     mp3 = None
-    for idx, clip in enumerate(SunoV6LiveEngine.audio_wait(api_key, ids), start=1):
-        cid = str(clip.get("id", ""))
-        status = str(clip.get("status", "")).lower()
-        song_url = clip.get("song_url") or f"https://suno.com/song/{urllib.parse.quote(cid, safe='')}"
-        lines.append(f"- {icon} **{kind} {idx} ({status or 'unknown'})**: [ស្តាប់លើ Suno]({song_url})")
-        state["suno_live_tracks"].append({"type": kind, "id": cid, "status": status, "url": song_url,
-                                          "audio_url": clip.get("audio_url")})
-        if not mp3 and status == "complete" and clip.get("audio_url"):
-            mp3 = SunoV6LiveEngine.download_mp3_to_local(clip["audio_url"], prefix=prefix)
+    for idx, song in enumerate(result["songs"], start=1):
+        sid = str(song.get("id", ""))
+        st = str(song.get("state", "")).lower()
+        url = song.get("audio_url") or ""
+        lines.append(f"- {icon} **{kind} {idx} ({st or 'pending'})**" + (f": [ស្តាប់ MP3]({url})" if url else ""))
+        state["suno_live_tracks"].append({"type": kind, "id": sid, "state": st, "audio_url": url, "task_id": task_id})
+        if not mp3 and st == "succeeded" and url:
+            mp3 = SunoV6LiveEngine.download_mp3_to_local(url, prefix=prefix)
     return mp3
 
 
@@ -361,7 +378,7 @@ def generate_audio(state: Dict[str, Any], title: str, box1: str, box2: str, mode
         warnings += w
         vocal_mp3 = _make_track(api_key, payload, "Vocal Theme Song", "🎤", "vo5_vocal_theme", lines, state)
 
-    made = len(state["suno_live_tracks"])
+    made = sum(1 for t in state["suno_live_tracks"] if t.get("state") == "succeeded")
     if HAS_QUOTA_ENGINE and made:   # bill only what was actually produced
         QuotaEnforcerProxy.deduct_usage_after_generation(
             user_id=user_id, input_tokens=7500, output_tokens=3500, cached_tokens=5500, action_type="SONG")
@@ -419,7 +436,7 @@ def build_vo5_synchronicity_live_suno_ui():
             mode_in = gr.Dropdown(label="ផលិតអ្វី", choices=MODE_CHOICES, value=MODE_VOCAL)
             gender_in = gr.Dropdown(label="សំឡេងអ្នកច្រៀង", choices=[("ប្រុស", "male"), ("ស្រី", "female")], value="male")
         with gr.Accordion("ការកំណត់ និងព័ត៌មានភ្លេង", open=False):
-            model_in = gr.Dropdown(label="ម៉ូដែល Suno", choices=["v6"], value="v6", allow_custom_value=True)
+            model_in = gr.Dropdown(label="ម៉ូដែល Suno", choices=SUNO_MODELS, value=SUNO_MODELS[0])
             user_id_in = gr.Textbox(label="លេខសម្គាល់សមាជិក (បើមិនបានចូលគណនី)", value="")
             score_md_out = gr.Markdown()
         btn_audio = gr.Button("ផលិតតន្ត្រី (ចំណាយ Suno credit)")

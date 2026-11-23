@@ -47,7 +47,9 @@ CALLS = []
 
 
 class FakeSuno(BaseHTTPRequestHandler):
+    """Behaves like AceData Cloud: POST /suno/audios -> task_id, POST /suno/tasks -> response.data[]."""
     fail_create = False
+    pending = False
 
     def log_message(self, *a):
         pass
@@ -62,18 +64,22 @@ class FakeSuno(BaseHTTPRequestHandler):
 
     def do_POST(self):
         payload = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-        CALLS.append(("POST", self.path, payload, self.headers.get("Idempotency-Key"), self.headers.get("Authorization")))
-        if FakeSuno.fail_create:
-            return self._json(402, {"message": "out of credits"})
-        kind = "s" if payload["instrumental"] else "v"
-        self._json(200, {"clip_ids": [kind + "1", kind + "2"]})
+        CALLS.append(("POST", self.path, payload, None, self.headers.get("Authorization")))
+        if self.path.endswith("/suno/audios"):
+            if FakeSuno.fail_create:
+                return self._json(401, {"error": {"code": "invalid_token", "message": "The token is invalid"}})
+            return self._json(200, {"task_id": "t-" + ("s" if payload["instrumental"] else "v")})
+        if self.path.endswith("/suno/tasks"):
+            tid = payload["id"]
+            state = "pending" if FakeSuno.pending else "succeeded"
+            songs = [{"id": f"{tid}-{i}", "state": state,
+                      "audio_url": "" if FakeSuno.pending else f"http://127.0.0.1:{PORT}/files/{tid}-{i}.mp3"}
+                     for i in (1, 2)]
+            return self._json(200, {"id": tid, "response": {"success": True, "task_id": tid, "data": songs}})
+        self._json(404, {"error": {"message": "not found"}})
 
     def do_GET(self):
         CALLS.append(("GET", self.path))
-        if self.path.startswith("/v0/audio/"):
-            cid = self.path.rsplit("/", 1)[1]
-            return self._json(200, {"id": cid, "status": "complete",
-                                    "audio_url": f"http://127.0.0.1:{PORT}/files/{cid}.mp3"})
         if self.path.startswith("/files/"):
             body = b"ID3" + b"\x00" * 100
             self.send_response(200)
@@ -82,14 +88,18 @@ class FakeSuno(BaseHTTPRequestHandler):
             self.wfile.write(body)
 
 
+def creates():
+    return [c for c in CALLS if c[0] == "POST" and c[1].endswith("/suno/audios")]
+
+
 server = ThreadingHTTPServer(("127.0.0.1", 0), FakeSuno)
 PORT = server.server_address[1]
 threading.Thread(target=server.serve_forever, daemon=True).start()
-os.environ["SUNO_API_BASE_URL"] = f"http://127.0.0.1:{PORT}/v0"
+os.environ["SUNO_API_BASE_URL"] = f"http://127.0.0.1:{PORT}"
 
 import live_suno  # noqa: E402
 
-live_suno.SunoV6LiveEngine.audio_wait.__func__.__defaults__ = (5, 0)   # fast polling in tests
+live_suno.SunoV6LiveEngine.task_wait.__func__.__defaults__ = (1, 0)   # fast polling in tests
 
 
 class FakeQuota:
@@ -111,12 +121,12 @@ def blueprint():
 def music(mode="both", gender="male", user="", box2=None, state=None):
     out = blueprint()
     st = out[-1] if state is None else state
-    return live_suno.generate_audio(st, out[1], out[2], out[3] if box2 is None else box2, mode, "v6", gender, user)
+    return live_suno.generate_audio(st, out[1], out[2], out[3] if box2 is None else box2, mode, "chirp-v6", gender, user)
 
 
 class Tests(unittest.TestCase):
     def setUp(self):
-        CALLS.clear(); FakeQuota.log.clear(); FakeSuno.fail_create = False
+        CALLS.clear(); FakeQuota.log.clear(); FakeSuno.fail_create = False; FakeSuno.pending = False
         os.environ["SUNO_API_KEY"] = "secret-key-123"
         live_suno.HAS_QUOTA_ENGINE, live_suno.QuotaEnforcerProxy = False, None
 
@@ -142,16 +152,25 @@ class Tests(unittest.TestCase):
         self.assertIn("4", status)
         self.assertTrue(score_mp3 and os.path.getsize(score_mp3) > 0)
         self.assertTrue(vocal_mp3 and os.path.getsize(vocal_mp3) > 0)
-        posts = [c for c in CALLS if c[0] == "POST"]
+        posts = creates()
         self.assertEqual([p[2]["instrumental"] for p in posts], [True, False])
-        self.assertEqual(posts[1][2]["vocal_gender"], "female")
+        self.assertEqual(posts[1][2]["vocal_gender"], "f")
+        self.assertEqual(posts[1][2]["action"], "generate"); self.assertTrue(posts[1][2]["custom"])
+        self.assertEqual(posts[1][2]["model"], "chirp-v6"); self.assertIn("lyric", posts[1][2])
         self.assertEqual(posts[0][4], "Bearer secret-key-123")
         self.assertEqual(state["suno_live_tracks"], [])  # caller's state not mutated
 
-    def test_retry_uses_same_idempotency_key(self):
-        music("vocal"); music("vocal")
-        keys = [c[3] for c in CALLS if c[0] == "POST"]
-        self.assertEqual(len(keys), 2); self.assertEqual(keys[0], keys[1])
+    def test_unfinished_task_is_not_resubmitted(self):
+        FakeSuno.pending = True
+        out = music("vocal")
+        self.assertEqual(len(creates()), 1)              # one create, then only look-ups
+        self.assertIn("t-v", out[3]); self.assertIn("មិនទាន់ចប់", out[3])
+        self.assertIn("មិនមាន track", out[0])            # nothing finished, nothing billed
+
+    def test_invalid_token_is_explained(self):
+        FakeSuno.fail_create = True
+        out = music("vocal")
+        self.assertIn("SUNO_API_KEY មិនត្រឹមត្រូវ", out[3])
 
     def test_no_server_key(self):
         os.environ["SUNO_API_KEY"] = ""
@@ -181,8 +200,8 @@ class Tests(unittest.TestCase):
 
     def test_pasted_lyrics_are_sung(self):
         music("vocal", box2="បទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
-        sent = [c[2] for c in CALLS if c[0] == "POST"][0]
-        self.assertEqual(sent["lyrics"], "[Verse]\nបទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
+        sent = creates()[0][2]
+        self.assertEqual(sent["lyric"], "[Verse]\nបទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
 
     def test_music_works_without_step_one(self):
         out = live_suno.generate_audio({}, "បទ", "Khmer ballad", "ទំនុកច្រៀង", "vocal", "v6", "male", "")
@@ -216,7 +235,7 @@ class Tests(unittest.TestCase):
 
     def test_untagged_box2_is_labelled_before_sending(self):
         out = music("vocal", box2="ក\n\nបន្ទរ\n\nខ\n\nបន្ទរ")
-        sent = [c[2] for c in CALLS if c[0] == "POST"][0]["lyrics"]
+        sent = creates()[0][2]["lyric"]
         self.assertTrue(sent.startswith("[Verse 1]")); self.assertIn("[Chorus]", sent); self.assertIn("ស្លាក", out[0])
 
     def test_signed_in_user_wins(self):
