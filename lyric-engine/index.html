@@ -172,6 +172,7 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme]) { --muted: #9a9a9a; --rhyme-a: #ffa64d; --rhyme-b: #56b4e9; --rhyme-c: #3fd1a3; --rhyme-d: #e7a1c8; --rhyme-ink: #0e0e0e; color-scheme: dark; } }
 :root[data-theme="dark"], :root[data-theme="accessible-dark"] { --muted: #9a9a9a; --rhyme-a: #ffa64d; --rhyme-b: #56b4e9; --rhyme-c: #3fd1a3; --rhyme-d: #e7a1c8; --rhyme-ink: #0e0e0e; color-scheme: dark; }
 
+[hidden] { display: none !important; }
 html, body { background: var(--background); }
 body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .wrap { max-width: 760px; margin: 0 auto; padding-block: var(--space-page); display: flex; flex-direction: column; gap: var(--space-section); }
@@ -202,6 +203,33 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 .badge.none { background: transparent; }
 .badge.A { background: var(--rhyme-a); } .badge.B { background: var(--rhyme-b); } .badge.C { background: var(--rhyme-c); } .badge.D { background: var(--rhyme-d); }
 .note { margin: 0; color: var(--muted); font-size: 14px; }
+.line { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+.fix { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 1px solid var(--color-select-border); border-radius: var(--radius-pill); padding: 1px 10px; cursor: pointer; transition: box-shadow 200ms, border 200ms; }
+.fix:hover { color: var(--color); }
+.fix:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.remember { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.remember b { color: var(--color); font-weight: 400; }
+.panel { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 14px; border-bottom: 1px solid var(--color-select-border); }
+.panel .was { margin: 0; color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+.panel label { font-size: 14px; color: var(--color); }
+.panel textarea, .panel input[type=text] { width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--color-select-border); border-radius: var(--radius-checkbox); background: var(--background); color: var(--color); font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; }
+.panel textarea:focus-visible, .panel input[type=text]:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.chips legend { padding: 0; margin-bottom: 4px; font-size: 14px; color: var(--color); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.status { font-size: 13px; color: var(--muted); }
+.memory { display: flex; flex-direction: column; gap: 10px; }
+.memory h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--color); }
+.memory .lead { margin: 0; color: var(--muted); font-size: 14px; }
+.lessons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.lesson { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--color-select-border); }
+.lesson .before { margin: 0; color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); overflow-wrap: anywhere; }
+.lesson .after { margin: 0; color: var(--color); overflow-wrap: anywhere; }
+.lesson .after.pending { color: var(--muted); font-style: italic; }
+.lesson .why { margin: 0; font-size: 13px; color: var(--muted); }
+.lesson .del { grid-row: 1 / span 3; grid-column: 2; align-self: start; }
+.tally { margin: 0; font-size: 14px; color: var(--color); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -222,6 +250,13 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 
   <p class="summary" id="summary" lang="km" aria-live="polite"></p>
   <ol class="lines" id="lines" lang="km" aria-label="លទ្ធផល"></ol>
+
+  <section class="memory" id="memory" lang="km" hidden>
+    <h2>អ្វីដែល Lyric Engine បានរៀនពីអ្នក</h2>
+    <p class="lead">រាល់ពេលអ្នកកែឃ្លាមួយ ម៉ាស៊ីនចងចាំ ហើយរំលឹកអ្នកនៅពេលឃ្លានោះលេចមកម្តងទៀត។</p>
+    <p class="tally" id="tally"></p>
+    <ul class="lessons" id="lessons"></ul>
+  </section>
 
   <p class="note" lang="km">ម៉ាស៊ីនមិនដឹងពីអត្ថន័យទេ។ កុំប្តូរពាក្យដែលមានន័យល្អ ដើម្បីតែឲ្យជួន ឬគ្រប់ព្យាង្គ។ ឃ្លាដែលមានអក្សរ និងពណ៌ដូចគ្នា ជួននឹងគ្នា។ សញ្ញា ≈ មានន័យថាម៉ាស៊ីនទាយ ហើយអាចខុស។</p>
 </main>
@@ -489,8 +524,9 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 
   function render() {
     var r = LyricEngine.analyze(box.value);
+    lastLines = r.lines;
     list.textContent = '';
-    r.lines.forEach(function (l) {
+    r.lines.forEach(function (l, idx) {
       var li = document.createElement('li');
       if (!l.count) { li.className = 'line gap'; list.appendChild(li); return; }
       li.className = 'line';
@@ -507,8 +543,19 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       var b = document.createElement('span'); b.className = 'badge ' + (l.group || 'none');
       b.textContent = l.group || '';
       if (l.group) b.setAttribute('aria-label', 'ជួនក្រុម ' + l.group);
-      li.append(syl, c, b);
+      var f = document.createElement('button'); f.type = 'button'; f.className = 'fix'; f.textContent = 'កែ';
+      f.setAttribute('aria-label', 'កែឃ្លា៖ ' + l.text);
+      f.addEventListener('click', function () { openFix(idx); });
+      li.append(syl, c, b, f);
+      var seen = lessonFor(l.text);
+      if (seen) {
+        var m = document.createElement('p'); m.className = 'remember';
+        m.append(document.createTextNode('អ្នកធ្លាប់កែឃ្លានេះ' + (seen.after ? ' → ' : ' (រង់ចាំឃ្លាថ្មី)')));
+        if (seen.after) { var bb = document.createElement('b'); bb.textContent = seen.after; m.appendChild(bb); }
+        li.appendChild(m);
+      }
       list.appendChild(li);
+      if (idx === openLine) list.appendChild(panel);
     });
     sum.textContent = r.totalLines
       ? km(r.totalLines) + ' ឃ្លា · ' + km(r.totalSyllables) + ' ព្យាង្គ · ' + km(r.groups.length) + ' ក្រុមពាក្យជួន'
@@ -516,7 +563,101 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     var meter = r.totalLines ? LyricEngine.guessMeter(box.value) : null;
     if (meter) sum.textContent += ' · ត្រូវនឹងរង្វាស់' + meter.name;
   }
-  box.addEventListener('input', function () { render(); try { localStorage.setItem('lyrics', box.value); } catch (e) {} });
+  /* ---------- Corrections: the engine learns from the writer ---------- */
+  var REASONS = [
+    ['obvious', 'ន័យស្រាល៖ និយាយរឿងដែលគេដឹងហើយ'],
+    ['no-person', 'គ្មានមនុស្ស ឬអារម្មណ៍'],
+    ['forced-rhyme', 'ទាញពាក្យមកជួន'],
+    ['mixed-image', 'រូបភាពច្របូកច្របល់'],
+    ['other', 'ផ្សេងៗ']
+  ];
+  var reasonName = {}; REASONS.forEach(function (r) { reasonName[r[0]] = r[1]; });
+  var lessons = [], db = null, me = null, openLine = -1, lastLines = [];
+  function norm(t) { return String(t || '').replace(/[\s​]+/g, '').trim(); }
+  function lessonFor(text) { var n = norm(text); if (!n) return null; for (var i = 0; i < lessons.length; i++) if (norm(lessons[i].before) === n) return lessons[i]; return null; }
+
+  var panel = document.createElement('li'); panel.className = 'panel'; panel.hidden = true;
+  panel.innerHTML = '<p class="was" id="fix-was"></p>' +
+    '<label for="fix-after">ប្តូរទៅជា (អាចទុកទទេ បើមិនទាន់គិតឃើញ)៖</label>' +
+    '<textarea id="fix-after" rows="2" lang="km"></textarea>' +
+    '<fieldset class="chips" id="fix-reasons"><legend>ហេតុអ្វីត្រូវកែ?</legend></fieldset>' +
+    '<label for="fix-note">ពន្យល់បន្ថែម (ស្រេចចិត្ត)៖</label>' +
+    '<input type="text" id="fix-note" lang="km">' +
+    '<div class="actions"><button type="button" class="le-button" id="fix-save">រក្សាទុកមេរៀន</button>' +
+    '<button type="button" class="le-button" id="fix-cancel">បោះបង់</button><span class="status" id="fix-status" aria-live="polite"></span></div>';
+  var reasonsBox = panel.querySelector('#fix-reasons');
+  REASONS.forEach(function (r) {
+    var l = document.createElement('label'); l.className = 'chip le-label';
+    var c = document.createElement('input'); c.type = 'checkbox'; c.className = 'le-checkbox'; c.value = r[0]; c.id = 'reason-' + r[0];
+    l.append(c, document.createTextNode(r[1])); reasonsBox.appendChild(l);
+  });
+  function openFix(i) {
+    var line = lastLines[i]; if (!line) return;
+    openLine = i;
+    var prev = lessonFor(line.text);
+    panel.querySelector('#fix-was').textContent = line.text;
+    panel.querySelector('#fix-after').value = prev ? prev.after || '' : '';
+    panel.querySelector('#fix-note').value = prev ? prev.note || '' : '';
+    reasonsBox.querySelectorAll('input').forEach(function (c) { c.checked = !!(prev && prev.reasons && prev.reasons.indexOf(c.value) >= 0); });
+    panel.querySelector('#fix-status').textContent = db ? '' : 'កំពុងភ្ជាប់ទៅកន្លែងរក្សាទុក…';
+    panel.hidden = false; render();
+    panel.querySelector('#fix-after').focus();
+  }
+  function closeFix() { openLine = -1; panel.hidden = true; render(); }
+  panel.querySelector('#fix-cancel').addEventListener('click', closeFix);
+  panel.querySelector('#fix-save').addEventListener('click', async function () {
+    var line = lastLines[openLine]; if (!line) return;
+    var st = panel.querySelector('#fix-status');
+    if (!db) { st.textContent = 'មិនអាចរក្សាទុកបានទេ៖ សូមចូលគណនី ហើយបើកទំព័រនេះម្តងទៀត។'; return; }
+    var reasons = Array.prototype.filter.call(reasonsBox.querySelectorAll('input'), function (c) { return c.checked; }).map(function (c) { return c.value; });
+    var prev = lessonFor(line.text);
+    var data = { before: line.text.trim(), after: panel.querySelector('#fix-after').value.trim(), reasons: reasons,
+                 note: panel.querySelector('#fix-note').value.trim(), at: new Date().toISOString(), by: me || '' };
+    this.disabled = true; st.textContent = 'កំពុងរក្សាទុក…';
+    try {
+      if (prev) await db.collection('lessons').doc(prev.id).set(data); else await db.collection('lessons').add(data);
+      st.textContent = 'បានរក្សាទុក។'; closeFix();
+    } catch (e) { st.textContent = 'រក្សាទុកមិនបាន (' + (e && e.code || 'error') + ')។ សូមព្យាយាមម្តងទៀត។'; }
+    this.disabled = false;
+  });
+
+  function renderLessons() {
+    var sec = document.getElementById('memory'), ul = document.getElementById('lessons');
+    sec.hidden = lessons.length === 0;
+    ul.textContent = '';
+    var counts = {};
+    lessons.forEach(function (l) {
+      (l.reasons || []).forEach(function (r) { counts[r] = (counts[r] || 0) + 1; });
+      var li = document.createElement('li'); li.className = 'lesson';
+      var b = document.createElement('p'); b.className = 'before'; b.textContent = l.before;
+      var a = document.createElement('p'); a.className = 'after' + (l.after ? '' : ' pending'); a.textContent = l.after ? '→ ' + l.after : '→ រង់ចាំឃ្លាថ្មី';
+      var w = document.createElement('p'); w.className = 'why';
+      w.textContent = (l.reasons || []).map(function (r) { return reasonName[r] || r; }).concat(l.note ? [l.note] : []).join(' · ');
+      var d = document.createElement('button'); d.type = 'button'; d.className = 'fix del'; d.textContent = 'លុប';
+      d.setAttribute('aria-label', 'លុបមេរៀន៖ ' + l.before);
+      d.addEventListener('click', async function () { d.disabled = true; try { await db.collection('lessons').doc(l.id).delete(); } catch (e) { d.disabled = false; } });
+      li.append(b, a, w, d); ul.appendChild(li);
+    });
+    var top = Object.keys(counts).sort(function (x, y) { return counts[y] - counts[x]; });
+    document.getElementById('tally').textContent = lessons.length
+      ? km(lessons.length) + ' មេរៀន' + (top.length ? ' · កំហុសញឹកញាប់៖ ' + top.slice(0, 2).map(function (r) { return reasonName[r] + ' (' + km(counts[r]) + ')'; }).join(', ') : '')
+      : '';
+  }
+
+  (async function connect() {
+    try {
+      var user = window.claude && await window.claude.use('user');
+      if (user) { try { me = await user.id(); } catch (e) {} }
+      db = window.claude && await window.claude.use('db');
+    } catch (e) { db = null; }
+    if (!db) return;
+    db.collection('lessons').orderBy('at', 'desc').onSnapshot(function (snap) {
+      lessons = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, before: String(x.before || ''), after: String(x.after || ''), reasons: Array.isArray(x.reasons) ? x.reasons.map(String) : [], note: String(x.note || '') }; });
+      renderLessons(); render();
+    }, function () {});
+  })();
+
+  box.addEventListener('input', function () { if (openLine >= 0) { openLine = -1; panel.hidden = true; } render(); try { localStorage.setItem('lyrics', box.value); } catch (e) {} });
   render();
 })();
 </script>
