@@ -197,3 +197,8 @@ console.log('count range passed');
 assert.deepStrictEqual(E.analyze('ចិត្តបងរលែកដូចទឹកថ្ងៃឡើង').lines[0].fillers, ['រលែក', 'ថ្ងៃឡើង']);
 assert.deepStrictEqual(E.analyze('ម៉ោងដប់យប់ហើយ ភ្លៀងក៏រលឹម').lines[0].fillers, []);
 console.log('filler hints passed');
+
+// silent ៍ tails, aspirate subscripts, Pali loanwords
+for (const [w, want] of [['ការណ៍', 'ការណ៍'], ['សាសន៍', 'សាសន៍'], ['ប្រយោជន៍', 'ប្រ·យោជន៍'], ['ទុក្ខទោស', 'ទុក្ខ·ទោស'],
+  ['ភូមិឃុំ', 'ភូមិ·ឃុំ'], ['រៀនសូត្រ', 'រៀន·សូត្រ'], ['ស័ក្តិ', 'ស័ក្តិ']]) assert.strictEqual(sy(w), want, w);
+console.log('loanwords passed');

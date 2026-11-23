@@ -26,7 +26,7 @@
   // Words whose written form breaks the rules (a silent final vowel). Grows as people correct counts.
   // Words whose written form breaks the rules: their real syllables, written out. Grows as people correct counts.
   var EXCEPTIONS = { 'ជាតិ': ['ជាតិ'], 'ធាតុ': ['ធាតុ'], 'ហេតុ': ['ហេតុ'], 'ប្រវត្តិ': ['ប្រ', 'វត្តិ'],
-    'ធម្មតា': ['ធម', 'ម', 'តា'], 'ធម្មជាតិ': ['ធម', 'ម', 'ជាតិ'], 'នគរ': ['ន', 'គរ'], 'ញាតិ': ['ញាតិ'], 'មនុស្ស': ['ម', 'នុស្ស'], 'សីលធម៌': ['សី', 'ល', 'ធម៌'], 'កន្លែង': ['កន', 'លែង'], 'សិទ្ធិ': ['សិទ្ធិ'], 'សិទិ្ធ': ['សិទិ្ធ'] };
+    'ធម្មតា': ['ធម', 'ម', 'តា'], 'ធម្មជាតិ': ['ធម', 'ម', 'ជាតិ'], 'នគរ': ['ន', 'គរ'], 'ញាតិ': ['ញាតិ'], 'មនុស្ស': ['ម', 'នុស្ស'], 'ភូមិ': ['ភូមិ'], 'កោដិ': ['កោដិ'], 'ស័ក្តិ': ['ស័ក្តិ'], 'ស័ក្ដិ': ['ស័ក្ដិ'], 'សូត្រ': ['សូត្រ'], 'សីលធម៌': ['សី', 'ល', 'ធម៌'], 'កន្លែង': ['កន', 'លែង'], 'សិទ្ធិ': ['សិទ្ធិ'], 'សិទិ្ធ': ['សិទិ្ធ'] };
 
   // 1. Khmer orthographic clusters: base (+ coeng subscripts) + vowels and marks
   function clusters(run) {
@@ -58,6 +58,7 @@
         continue;
       }
       if (!isCons(cl.base) && !isIndepVowel(cl.base)) continue;
+      if (cur && /៍/.test(cl.marks) && !cl.vowels.replace('ិ', '').length) { cur.text += cl.text; cur.closed = true; continue; }   // ការ·ណ៍ -> ការណ៍
       var canTakeFinal = cur && !cur.closed;
       var bare = !hasNucleus(cl);
       if (cl.base === '\u17A2' && bare && cl.subs.length === 0 && !isFinalMarked(cl)) canTakeFinal = false;   // អ is never a final (ណ្តៅ|អបាយ)
@@ -74,6 +75,7 @@
         for (var q = k; q < cls.length; q++) {
           var c2 = cls[q];
           if (c2.base === '\u17A2' && !hasNucleus(c2)) break;
+          if (/៍/.test(c2.marks)) break;   // a silent ៍ tail does not count
           if (isCons(c2.base) && c2.subs.length === 0 && !hasNucleus(c2)) { n++; continue; }
           // ង្ស in ពង្ស / វង្ស: a vowel-less subscript cluster is the final of the bare consonant before it
           if (isCons(c2.base) && c2.subs.length && !hasNucleus(c2) && !isFinalMarked(c2) && 'រល'.indexOf(c2.subs[0]) < 0 && !(cls[q + 1] && (isFinalMarked(cls[q + 1]) || !hasNucleus(cls[q + 1])))) n++;   // not គ្រ|ប់
@@ -90,7 +92,7 @@
       if (canTakeFinal && bare && cl.subs.length > 0 && !('រល'.indexOf(cl.subs[0]) >= 0 && next)) {   // ស្រី·ស្រ·ដី, but មិត្រ បុត្រ (silent at word end)
         // a subscript cluster with no vowel ends the syllable unless a bare consonant follows (សង្គម vs ចន្ទ)
         var nextBare = next && isCons(next.base) && !hasNucleus(next) && !isFinalMarked(next) && next.subs.length === 0;   // សង្គម (ម follows) vs បុណ្យ|អ្នក
-        if (!nextBare || cl.subs[0] === cl.base) { attach(cur, cl); cur.approx = true; continue; }   // មគ្គ·ផល
+        if (!nextBare || cl.subs[0] === cl.base || FINAL_CLASS[cl.subs[0]] === FINAL_CLASS[cl.base]) { attach(cur, cl); cur.approx = true; continue; }   // មគ្គ·ផល
         cur.approx = true;
       }
       var indepClosed = isIndepVowel(cl.base) && cl.subs.length > 0;   // ឲ្យ ឱ្យ end in -y
