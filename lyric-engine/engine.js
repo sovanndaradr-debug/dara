@@ -77,7 +77,8 @@
     var nasal = s.marks.replace(/[^ំៈ]/g, '');
     var fin = s.fin ? (FINAL_CLASS[s.fin] !== undefined ? FINAL_CLASS[s.fin] : s.fin) : '';
     var v = (s.vowels || '-') + nasal;
-    if (isIndepVowel(s.base)) { series = 'a'; v = INDEP[s.base] || s.base; }    // ឯង sounds like -ែង
+    if (isIndepVowel(s.base)) { series = 'a'; v = INDEP[s.base] || s.base; }
+    if (/^[\u17BD\u17C0\u17BF]/.test(v)) series = '*';   // ួ ៀ ឿ rhyme across អឃោសៈ / ឃោសៈ (house rule)    // ឯង sounds like -ែង
     if (s.marks.indexOf('ះ') >= 0 && !fin) fin = 'h';                     // ចុះ rhymes with ខុស
     if (series === 'a' && v === '\u17B6\u17C6' && !fin) { v = '-'; fin = 'm'; }
     if (v === '\u17C6' && !fin) { v = '-'; fin = 'm'; }
@@ -136,7 +137,8 @@
       var last = null;
       for (var i = syl.length - 1; i >= 0; i--) if (syl[i].rime) { last = syl[i]; break; }
       return { text: raw, syllables: visible.map(function (s) { return { text: s.text, rime: s.rime }; }),
-               count: syl.length, approx: syl.some(function (s) { return s.approx; }), endRime: last ? last.rime : null, group: null };
+               count: syl.length, approx: syl.some(function (s) { return s.approx; }), endRime: last ? last.rime : null, group: null,
+               techniques: techniques(syl) };
     });
     // rhyme groups: line endings that share a rime with another line ending
     var byRime = {};
@@ -160,37 +162,76 @@
      studykhmer.com "Khmer Versification: Poetic Meters" for the kinds of rhyme.
      Positions are 1-based: [line, syllable]. "to" may list alternatives (any one is enough). */
   var METERS = [
-    { id: 'pheak6', name: 'បទពាក្យ៦', lines: [6, 6, 6, 6], stress: [2, 4], verified: true,
+    { id: 'pheak6', name: 'បទពាក្យ៦', lines: [6, 6, 6, 6], stress: [2, 4], verified: true, use: 'ចង្វាក់លឿន Pop', tempo: ['fast'],
       links: [{ from: [1, 6], to: [[2, 2], [2, 4]] }, { from: [2, 6], to: [[3, 6]] }, { from: [3, 6], to: [[4, 2], [4, 4]] }],
       cross: { from: [4, 6], to: [2, 6] }, mood: '' },
-    { id: 'pheak7', name: 'បទពាក្យ៧', lines: [7, 7, 7, 7], stress: [2, 4], verified: true,
-      links: [{ from: [1, 7], to: [[2, 2], [2, 4]] }, { from: [2, 7], to: [[3, 7]] }, { from: [3, 7], to: [[4, 2], [4, 4]] }],
+    { id: 'pheak7', name: 'បទពាក្យ៧', lines: [7, 7, 7, 7], stress: [2, 4], verified: true, phrasing: ['2-2-3', '3+4', '4+3'],
+      use: 'និទានរឿង មនោសញ្ចេតនា Pop Ballad, R&B, Acoustic', tempo: ['slow', 'mid'],
+      links: [{ from: [1, 7], to: [[2, 2], [2, 4], [2, 7]] }, { from: [2, 7], to: [[3, 7]] }, { from: [3, 7], to: [[4, 2], [4, 4], [4, 7]] }],
       cross: { from: [4, 7], to: [2, 7] }, mood: 'គ្រប់បរិយាកាស៖ កំហឹង ទុក្ខសោក ការព្រាត់ប្រាស់ ភាពរីករាយ ការសន្ទនា ធម្មជាតិ' },
-    { id: 'pheak8', name: 'បទពាក្យ៨', lines: [8, 8, 8, 8], stress: [3, 5], verified: true,
+    { id: 'pheak8', name: 'បទពាក្យ៨', lines: [8, 8, 8, 8], stress: [3, 5], verified: true, phrasing: ['4+4'],
+      use: 'សាច់រឿងធំ វីរភាព ធម៌អប់រំ គុណមាតាបិតា ចម្រៀងប្រជាប្រិយ', tempo: ['mid', 'festive'],
       note: 'សៀវភៅថាព្យាង្គទី៣ ឬទី៥ ប៉ុន្តែកំណាព្យពិត (ឧទាហរណ៍វិគីភីឌា) ជួននៅព្យាង្គទី៤ ដូច្នេះទទួលយក ៣ ៤ ឬ ៥',
       links: [{ from: [1, 8], to: [[2, 3], [2, 4], [2, 5]] }, { from: [2, 8], to: [[3, 8]] }, { from: [3, 8], to: [[4, 3], [4, 4], [4, 5]] }],
       cross: { from: [4, 8], to: [2, 8] }, mood: 'គ្រប់បរិយាកាស' },
-    { id: 'kakagati', name: 'បទកាកគតិ', lines: [4, 4, 4, 4, 4, 4, 4], stress: [2], verified: true,
+    { id: 'kakagati', name: 'បទកាកគតិ', lines: [4, 4, 4, 4, 4, 4, 4], stress: [2], verified: true, use: 'ចង្វាក់លឿន លោតៗ', tempo: ['fast'],
       links: [{ from: [1, 4], to: [[2, 4]] }, { from: [3, 4], to: [[5, 4]] }, { from: [5, 4], to: [[6, 4]] }],
       cross: { from: [7, 4], to: [3, 4] }, mood: 'ពណ៌នាទីកន្លែង តួអង្គ ធម្មជាតិ ផ្តើមរឿង ពេលខ្លះសម្តែងទុក្ខសោក' },
-    { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [], verified: true,
+    { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [], verified: true, use: 'ការអប់រំ ទូន្មាន បរិយាកាសឧត្តុង្គឧត្តម', tempo: ['festive'],
+      note: 'វិគីភីឌា និង studykhmer ថា ៥-៦-៥-៦ ឯកសារម្ចាស់គម្រោងថា ៥-៤-៥-៤៖ ត្រូវការប្រភពមួយទៀត',
       links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }, { from: [3, 5], to: [[4, 3]] }],
       cross: { from: [4, 6], to: [2, 6] }, mood: '' },
-    { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true,
+    { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true, use: 'ភាពរន្ធត់ តានតឹង ការផ្លាស់ប្តូរភ្ញាក់ផ្អើល Hard Trap', tempo: ['fast', 'drama'],
       links: [{ from: [1, 6], to: [[2, 4]] }],
       cross: { from: [3, 4], to: [1, 6] }, mood: '' },
     { id: 'pumnol', name: 'បទពំនោល', lines: [4, 6, 4, 6], stress: [2, 4], verified: false,
-      note: 'ប្រភពផ្ទុយគ្នា (៤ឃ្លា ៤/៦/៤/៦ ឬ ៣ឃ្លា ៦/៤/៦)៖ មិនទាន់ប្រើពិនិត្យ',
-      links: [], cross: null, mood: 'កំហឹង ការគំរាមកំហែង ពាក្យអង្វរ ជម្លោះចម្បាំង' }
+      note: 'ប្រភពផ្ទុយគ្នា (៤/៦/៤/៦, ៦/៤/៦, ឬ ៨-៦ តាមឯកសារម្ចាស់គម្រោង)៖ មិនទាន់ប្រើពិនិត្យ', tempo: ['drama'],
+      links: [], cross: null, mood: 'កំហឹង ការគំរាមកំហែង ពាក្យអង្វរ ជម្លោះចម្បាំង', use: 'ការបញ្ចេញអារម្មណ៍ខ្លាំងៗ' },
+    { id: 'pheak9', name: 'បទពាក្យ៩ (កម្រងកែវ)', lines: null, phrasing: ['3+3+3'], verified: false, links: [], cross: null,
+      note: 'ឃ្លាមាន ៩ ព្យាង្គ ចុងជួនប្រទាក់ខាងក្នុង៖ ចំណាប់ជួនពេញលេញមិនទាន់មានប្រភព',
+      use: 'មនោសញ្ចេតនាជ្រៅ Melisma 6/8 យឺត ឈុតកម្សត់', tempo: ['slow'] },
+    { id: 'kakha', name: 'បទកខ', lines: null, phrasing: ['4-4'], verified: false, links: [], cross: null,
+      note: 'ចំណាប់ជួនមិនទាន់មានប្រភព', use: 'អប់រំ', tempo: ['festive'] }
   ];
+
+  /* Which forms suit which tempo (house notes). Meaning still comes first: this is a starting point, not a rule. */
+  var TEMPO = {
+    slow: { name: 'ចង្វាក់យឺត មនោសញ្ចេតនាជ្រៅ (Ballad, Acoustic, 6/8)', advice: 'ប្រយោគវែងល្មម រូបភាព ឈូករីកកណ្តាលស្រះ ទទះស្ទួន', forms: ['pheak7', 'pheak9', 'free'] },
+    mid: { name: 'ចង្វាក់មធ្យម និទានរឿង (Pop, Romvong, R&B)', advice: 'ប្រយោគសន្ទនាធម្មជាតិ ដកដង្ហើមច្បាស់', forms: ['pheak7', 'pheak8'] },
+    fast: { name: 'ចង្វាក់លឿន Rap Rock Trap', advice: 'ឃ្លាខ្លី មុតស្រួច បុកចំស្គរ ទទះស្លាប ញ៉ែងញ៉ង', forms: ['kakagati', 'phujong', 'free'] },
+    festive: { name: 'ពិធីបុណ្យ ប្រពៃណី អប់រំ', advice: 'ពាក្យមានទម្ងន់ ឆ្លើយឆ្លង លើកទឹកចិត្ត', forms: ['pheak8', 'brahmagiti', 'kakha'] },
+    drama: { name: 'ផ្ទុះអារម្មណ៍ខ្លាំង ល្ខោន', advice: 'ទុកចន្លោះផ្អាក ឲ្យភាពស្ងាត់និយាយ', forms: ['pumnol', 'free'] }
+  };
+
+  /* Free verse (កម្រងកែវសេរី) sound techniques the engine can see inside one line.
+     ញ៉ែងញ៉ង (twisted rhyme) depends on meaning and humour: the engine cannot judge it. */
+  function techniques(syl) {
+    var out = [], seen = {}, rep = false;
+    syl.forEach(function (s) { if (s.text && s.text.length > 1) { if (seen[s.text]) rep = true; seen[s.text] = 1; } });
+    if (rep) out.push('ទទះស្ទួន');
+    var onsets = {};   // three or more syllables starting with the same consonant cluster (a word like ដដែល alone is not a device)
+    syl.forEach(function (s) { if (s.onset) onsets[s.onset] = (onsets[s.onset] || 0) + 1; });
+    if (Object.keys(onsets).some(function (k) { return onsets[k] >= 3; })) out.push('ទទះស្លាប');
+    var inner = syl.slice(0, -1), rimes = {};
+    for (var j = 0; j < inner.length; j++) {
+      var r = inner[j].rime; if (!r || /:-:$/.test(r)) continue;
+      if (rimes[r] && rimes[r] !== inner[j].text) { out.push('ឈូករីកកណ្តាលស្រះ'); break; }
+      rimes[r] = inner[j].text;
+    }
+    return out;
+  }
 
   /* Kinds of Khmer rhyme (ចួន), strongest first. Near rhymes ("cheater" rhymes) are a poet's last resort:
      the engine never counts them, and never suggests them. */
-  function rhymeKind(a, b) {
+  /* opts.strict (the house rule, default): អឃោសៈ rhymes only with អឃោសៈ and ឃោសៈ only with ឃោសៈ,
+     except ួ ៀ ឿ. Classical verse also accepts a matching written vowel across series (ត្រី / ពីរ),
+     so fitMeter reads traditional poems with strict: false. */
+  function rhymeKind(a, b, opts) {
+    var strict = !opts || opts.strict !== false;
     if (!a || !b || !a.text || !b.text) return null;
     if (a.text === b.text) return 'repeat';                  // the same syllable repeated: allowed, sometimes required
-    if (a.rime && a.rime === b.rime) return 'sound';         // same vowel sound and final sound
-    if (a.vowel && a.vowel === b.vowel) return 'written';    // same written vowel and final, series differ (ត្រី / ពីរ)
+    if (a.rime && a.rime === b.rime) return 'sound';         // same vowel sound, final sound and series
+    if (!strict && a.vowel && a.vowel === b.vowel) return 'written';
     return null;
   }
 
@@ -216,10 +257,10 @@
       var at = function (p) { var l = lines[p[0] - 1]; return l && l[p[1] - 1]; };
       var links = m.links.map(function (ln) {
         var a = at(ln.from), best = null;
-        ln.to.forEach(function (p) { var kind = rhymeKind(a, at(p)); if (kind && !best) best = { pos: p, kind: kind }; });
+        ln.to.forEach(function (p) { var kind = rhymeKind(a, at(p), { strict: false }); if (kind && !best) best = { pos: p, kind: kind }; });
         var near = null;   // rhyme found at a neighbouring syllable instead (common in real verse)
         if (!best && a) ln.to.forEach(function (p) {
-          [p[1] - 1, p[1] + 1].forEach(function (q) { var kind = rhymeKind(a, at([p[0], q])); if (kind && !near && !best) near = { pos: [p[0], q], kind: kind }; });
+          [p[1] - 1, p[1] + 1].forEach(function (q) { var kind = rhymeKind(a, at([p[0], q]), { strict: false }); if (kind && !near && !best) near = { pos: [p[0], q], kind: kind }; });
         });
         return { from: ln.from, fromText: a ? a.text : null, expected: ln.to, found: best, near: near };
       });
@@ -229,7 +270,7 @@
     if (m.cross) for (var i = 0; i + 1 < sts.length; i++) {
       var A = sts[i].lines[m.cross.from[0] - 1], B = sts[i + 1].lines[m.cross.to[0] - 1];
       var a = A && A[m.cross.from[1] - 1], b = B && B[m.cross.to[1] - 1];
-      cross.push({ stanza: i + 1, from: a, to: b, kind: rhymeKind({ text: a, rime: rimeOf(a), vowel: vowelOf(a) }, { text: b, rime: rimeOf(b), vowel: vowelOf(b) }) });
+      cross.push({ stanza: i + 1, from: a, to: b, kind: rhymeKind({ text: a, rime: rimeOf(a), vowel: vowelOf(a) }, { text: b, rime: rimeOf(b), vowel: vowelOf(b) }, { strict: false }) });
     }
     var total = 0, ok = 0;
     sts.forEach(function (st) { total += 1 + st.links.length; if (st.syllables === st.expected) ok++; st.links.forEach(function (l) { if (l.found) ok++; else if (l.near) ok += 0.5; }); });
@@ -241,10 +282,10 @@
   // Which metre is this closest to? Quiet information; returns null unless the fit is clear.
   function guessMeter(text) {
     var best = null;
-    METERS.forEach(function (m) { if (!m.verified) return; var f = fitMeter(text, m.id); if (f && (!best || f.score > best.score)) best = f; });
+    METERS.forEach(function (m) { if (!m.verified || !m.lines) return; var f = fitMeter(text, m.id); if (f && (!best || f.score > best.score)) best = f; });
     return best && best.score >= 0.75 ? best : null;
   }
 
-  root.LyricEngine = { analyze: analyze, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS };
+  root.LyricEngine = { analyze: analyze, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO };
   if (typeof module !== 'undefined') module.exports = root.LyricEngine;
 })(typeof window !== 'undefined' ? window : globalThis);

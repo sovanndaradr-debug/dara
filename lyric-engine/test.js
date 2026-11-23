@@ -19,7 +19,16 @@ const kk='មេសាចិតប្រាំ នគររងកម្ម ស�
 const k=E.fitMeter(kk,'kakagati');k.stanzas.forEach(s=>{console.log('kakagati syll',s.syllables+'/'+s.expected);s.lines.forEach(l=>console.log('  ',l.join('·')));s.links.forEach(l=>console.log('   link',l.from.join(':'),l.fromText,'->',l.found?l.found.pos.join(':')+' '+l.found.kind:(l.near?'near':'none')));});
 console.log('guess',(E.guessMeter(kk)||{}).name);
 console.log('user verse guess',(E.guessMeter('ច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ\nប៉ុន្តែមាសមេអ្នកនៅសែនឆ្ងាយ\nថ្ងៃណាបាននែបនិត្យកាយ\nបើនៅឆ្ងាយឈងមិនដល់')||{name:'none'}).name);
-console.log('kinds', E.rhymeKind({text:'ត្រី',rime:'a',vowel:'ី:'},{text:'ពីរ',rime:'o',vowel:'ី:'}));
+console.log('kinds', E.rhymeKind({text:'ត្រី',rime:'a',vowel:'ី:'},{text:'ពីរ',rime:'o',vowel:'ី:'},{strict:false}));
+// house rules
+const end=(t)=>E.analyze(t).lines[0].syllables.slice(-1)[0];
+assert.strictEqual(E.rhymeKind(end('សួរ'),end('ជួរ')),'sound');          // ួ ៀ ឿ cross the series
+assert.strictEqual(E.rhymeKind(end('កា'),end('គា')),null);              // strict: series must match
+assert.strictEqual(E.rhymeKind({text:'ត្រី',rime:'a',vowel:'ី:'},{text:'ពីរ',rime:'o',vowel:'ី:'}),null);
+assert.strictEqual(E.rhymeKind({text:'ត្រី',rime:'a',vowel:'ី:'},{text:'ពីរ',rime:'o',vowel:'ី:'},{strict:false}),'written');
+assert.strictEqual(E.analyze('ប្រវត្តិសាស្ត្រ').lines[0].count,3);
+assert.deepStrictEqual(E.analyze('បងនៅឈរកន្លែងដដែល').lines[0].techniques,[]);
+assert.deepStrictEqual(E.analyze('ទឹកត្រជាក់ត្រជុំត្រជាក់ចិត្ត').lines[0].techniques,['ទទះស្ទួន','ទទះស្លាប']);
 // assertions: these must stay true
 assert.strictEqual(E.guessMeter(p8).id, 'pheak8');
 assert.strictEqual(E.guessMeter(kk).id, 'kakagati');
