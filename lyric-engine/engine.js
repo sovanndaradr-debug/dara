@@ -67,7 +67,7 @@
       var silentNext = next && isCons(next.base) && next.subs.length && !hasNucleus(next) && !isFinalMarked(next) && ONSET_SUBS.indexOf(next.subs[0]) < 0 && !(cls[k + 2] && (isFinalMarked(cls[k + 2]) || !hasNucleus(cls[k + 2])));
       var n2 = cls[k + 2];
       var closedPair = next && isCons(next.base) && next.subs.length === 0 && (isFinalMarked(next) || !hasNucleus(next)) && (!n2 || hasNucleus(n2) && !isFinalMarked(n2));   // ស·កល ន·រក រ·វល់
-      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base) && !silentNext && !(closedPair && !cur.subs.length)) { attach(cur, cl); continue; }   // inherent vowel + final: រង, ជន
+      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base) && !silentNext && !closedPair) { attach(cur, cl); continue; }   // ប្រ·កប   // inherent vowel + final: រង, ជន
       if (canTakeFinal && bare && cl.subs.length === 0) {
         // A run of bare consonants after an open syllable pairs up as (onset + final):
         // odd run -> the first one closes the open syllable (រៀ|ន រស់), even run -> they pair (ត្រី|ផង, ប្រើ|អញ, ឱ្យ|យល់)
@@ -86,10 +86,10 @@
         }
         // ...unless the run ends in a likely minor syllable before a vowel syllable: ម្អិ|ត រ·បៀប (not ម្អិ·តរ)
         var after = cls[k + n], lastRun = cls[k + n - 1];
-        var minorEnd = n >= 2 && n % 2 === 0 && after && hasNucleus(after) && lastRun && !isFinalMarked(lastRun) && MINOR_ONSETS.indexOf(lastRun.base) >= 0;
+        var minorEnd = n >= 2 && n % 2 === 0 && !!cur.vowels && after && hasNucleus(after) && lastRun && !isFinalMarked(lastRun) && MINOR_ONSETS.indexOf(lastRun.base) >= 0;
         if (n % 2 === 1 || minorEnd) { attach(cur, cl); continue; }
       }
-      if (canTakeFinal && bare && cl.subs.length > 0 && !('រល'.indexOf(cl.subs[0]) >= 0 && next)) {   // ស្រី·ស្រ·ដី, but មិត្រ បុត្រ (silent at word end)
+      if (canTakeFinal && bare && cl.subs.length > 0 && !('រល'.indexOf(cl.subs[0]) >= 0 && next && !/^[ិុ]$/.test(cur.vowels))) {   // បុត្រ·ទាំង (after a short vowel ្រ is silent)   // ស្រី·ស្រ·ដី, but មិត្រ បុត្រ (silent at word end)
         // a subscript cluster with no vowel ends the syllable unless a bare consonant follows (សង្គម vs ចន្ទ)
         var nextBare = next && isCons(next.base) && !hasNucleus(next) && !isFinalMarked(next) && next.subs.length === 0;   // សង្គម (ម follows) vs បុណ្យ|អ្នក
         if (!nextBare || cl.subs[0] === cl.base || FINAL_CLASS[cl.subs[0]] === FINAL_CLASS[cl.base]) { attach(cur, cl); cur.approx = true; continue; }   // មគ្គ·ផល
@@ -389,6 +389,35 @@
     return null;
   }
 
-  root.LyricEngine = { analyze: analyze, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
+  /* A long poem or song can change form (ច្បាប់កូនចៅល្បើក: កាកគតិ, then ព្រហ្មគីតិ; a verse and a chorus).
+     Best metre per stanza, gaps filled from both sides, one-stanza blips absorbed. Returns the sections
+     only when there are at least two, each of 3 stanzas or more; otherwise null (use guessMeter). */
+  function guessSections(text) {
+    var sts = stanzas(text);
+    if (sts.length < 6) return null;
+    var ids = sts.map(function (t) {
+      var best = null;
+      METERS.forEach(function (m) { if (!m.verified || !m.lines) return; var f = fitMeter(t, m.id); if (f && f.score >= 0.6 && (!best || f.score > best.score)) best = { id: m.id, score: f.score }; });
+      return best ? best.id : null;
+    });
+    for (var i = 0; i < ids.length; i++) if (!ids[i]) {
+      var a = null, b = null, j;
+      for (j = i - 1; j >= 0 && !a; j--) a = ids[j];
+      for (j = i + 1; j < ids.length && !b; j++) b = ids[j];
+      ids[i] = a && (a === b || !b) ? a : (b && !a ? b : null);
+    }
+    var runs = [];
+    ids.forEach(function (id, k) { var r = runs[runs.length - 1]; if (r && r.id === id) r.to = k + 1; else runs.push({ id: id, from: k + 1, to: k + 1 }); });
+    runs = runs.filter(function (r, k) {   // absorb short blips into the run before them
+      if (k > 0 && r.to - r.from < 2) { runs[k - 1].to = r.to; return false; } return true;
+    }).reduce(function (out, r) { var last = out[out.length - 1]; if (last && last.id === r.id) last.to = r.to; else out.push(r); return out; }, []);
+    runs = runs.filter(function (r) { return r.id; }).reduce(function (out, r) { var last = out[out.length - 1]; if (last && last.id === r.id) last.to = r.to; else out.push(r); return out; }, []);
+    // A-B-A: a passage sandwiched by the same form is noise (loanwords that miscount), not a change of form
+    for (var q = 1; q + 1 < runs.length; q++) if (runs[q - 1].id === runs[q + 1].id) { runs[q - 1].to = runs[q + 1].to; runs.splice(q, 2); q--; }
+    if (runs.length < 2 || runs.some(function (r) { return r.to - r.from < 2; })) return null;
+    return runs.map(function (r) { var m = METERS.filter(function (x) { return x.id === r.id; })[0]; return { id: r.id, name: m.name, from: r.from, to: r.to }; });
+  }
+
+  root.LyricEngine = { analyze: analyze, guessSections: guessSections, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
   if (typeof module !== 'undefined') module.exports = root.LyricEngine;
 })(typeof window !== 'undefined' ? window : globalThis);

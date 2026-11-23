@@ -202,3 +202,11 @@ console.log('filler hints passed');
 for (const [w, want] of [['ការណ៍', 'ការណ៍'], ['សាសន៍', 'សាសន៍'], ['ប្រយោជន៍', 'ប្រ·យោជន៍'], ['ទុក្ខទោស', 'ទុក្ខ·ទោស'],
   ['ភូមិឃុំ', 'ភូមិ·ឃុំ'], ['រៀនសូត្រ', 'រៀន·សូត្រ'], ['ស័ក្តិ', 'ស័ក្តិ']]) assert.strictEqual(sy(w), want, w);
 console.log('loanwords passed');
+
+// a change of form inside one work (ច្បាប់កូនចៅល្បើក: កាកគតិ then ព្រហ្មគីតិ)
+const two = E.guessSections(p8full + '\n\n' + chbab);
+assert.deepStrictEqual(two.map(s => [s.id, s.from, s.to]), [['pheak8', 1, 4], ['brahmagiti', 5, 10]]);
+assert.strictEqual(E.guessSections(chbab), null);                // one form: no sections
+assert.strictEqual(sy('ប្រកបការ'), 'ប្រ·កប·ការ');
+assert.strictEqual(sy('បុត្រទាំងបី'), 'បុត្រ·ទាំង·បី');
+console.log('sections passed');
