@@ -1,8 +1,9 @@
 /* Lyric Engine — component styles, exact to the source page; colours, spacing and radii come from tokens.css */
+@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300..700&display=swap');
 .le-page { color: var(--color); background: var(--background); font-family: var(--font-sans); font-size: 16px; line-height: 1.15; }
 .le-page p { margin: 0; }
 .le-main { max-width: var(--width-main); padding: var(--space-page); margin: auto; font-size: 16px; }
-.le-main > div { margin-bottom: var(--space-section); }
+.le-main > div, .le-main > fieldset { margin-bottom: var(--space-section); }
 :focus:not(:focus-visible) { outline: none; }
 
 .le-button, .le-select {
@@ -65,3 +66,7 @@
 .le-command ul { list-style: '$ '; margin: 0; }
 .le-command li { white-space: pre; }
 .le-indent { margin-left: var(--space-indent); }
+
+/* Khmer: mark Khmer text lang="km" (or class le-km) for Kantumruy Pro and room for stacked vowels and subscripts */
+:lang(km), .le-km { font-family: var(--font-khmer); line-height: 1.7; }
+.le-button:lang(km), .le-select:lang(km) { line-height: 1.7; }

@@ -86,6 +86,7 @@
   --radius-pill: 999em;
   --radius-checkbox: 3px;
   --radius-round: 100%;
-  --font-sans: 'Segoe UI', Arial, Helvetica, sans-serif;
+  --font-sans: 'Segoe UI', Arial, 'Kantumruy Pro', Helvetica, sans-serif;
   --font-mono: Consolas, monospace;
+  --font-khmer: 'Kantumruy Pro', 'Segoe UI', sans-serif;
 }

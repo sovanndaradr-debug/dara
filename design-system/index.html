@@ -29,6 +29,13 @@
     <label class="le-label"><input class="le-radio" type="radio" name="c">g++</label>
     <label class="le-label"><input class="le-radio" type="radio" name="c" checked>clang (recommended)</label>
   </fieldset>
+  <div lang="km">
+    <p>ជ្រើសរើសភាសាសរសេរកម្មវិធីដែលអ្នកចង់ប្រើជាមួយម៉ាស៊ីននេះ៖</p>
+    <select class="le-select" aria-label="ភាសាសរសេរកម្មវិធី"><option value="" disabled selected>ជ្រើសរើសភាសាសរសេរកម្មវិធី៖</option><option>Python</option><option>JavaScript</option><option>Go</option></select>
+  </div>
+  <div lang="km">
+    <label class="le-label"><input class="le-checkbox" type="checkbox">បង្កើតកំណែ debug។ កំណែ debug មានទំហំធំជាង និងដំណើរការយឺតជាងកំណែ release។</label>
+  </div>
   <div>
     <p>Here is the complete instruction for building (see the <a class="le-link" href="README.md">brand book</a>):</p>
     <code class="le-command" id="cmds"><ul><li>cmake -DCMAKE_BUILD_TYPE=Release ..</li><li>cmake --build . --target install</li></ul></code>

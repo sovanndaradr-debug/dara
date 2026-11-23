@@ -20,6 +20,8 @@ Lyric Engine is a quiet, utilitarian interface for walking someone through a tec
 
 **Type.** One family, `font-sans` ('Segoe UI', Arial, Helvetica) at 16px for everything (`body`, `control`). Commands use `font-mono` (Consolas) in the `command` style. No type scale, no bold headings: hierarchy comes from order and indentation.
 
+**Khmer.** Khmer text is set in Kantumruy Pro (`font-khmer`, loaded from Google Fonts by `bundle.css`). Mark every Khmer element `lang="km"` (or class `le-km`): it then gets `font-khmer` and a 1.7 line height (`body-km`, `control-km`), because 1.15 clips subscript consonants and vowels above and below the line. The main `font-sans` stack also lists Kantumruy Pro after Arial, so stray Khmer words inside English text still render in it, but only `lang="km"` gives them the taller line. Use `heading-km` (24px, 600) only for a page name. Write Khmer prompts the same way as English: one plain sentence ending in "៖", then its control.
+
 **Layout and spacing.** One centred column, max `width-main` (1250px), padded `space-page` (25px). Each step is a block with `space-section` (20px) below it. Commands and their Copy button are indented `space-indent` (40px) under the sentence that introduces them. Controls pad `space-control` (5px) and sit 5px below their prompt.
 
 **Shape.** Buttons and selects are full pills (`radius-pill`). Checkboxes are 20px squares with `radius-checkbox` (3px); radios are 20px circles (`radius-round`). The command block is square.
