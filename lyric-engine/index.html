@@ -255,6 +255,10 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
 .entry details summary { cursor: pointer; font-size: 14px; color: var(--color-primary); }
 #pack pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 14px; line-height: 1.7; color: var(--color); max-height: 24em; overflow: auto; }
 #pack summary { cursor: pointer; font-size: 14px; color: var(--color-primary); }
+.chip-s { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: var(--radius-pill); border: 1px solid var(--color-select-border); color: var(--muted); white-space: nowrap; }
+.chip-s.done { border-color: var(--color-primary); color: var(--color-primary); }
+.form input[type=file] { font: inherit; font-size: 14px; color: var(--color); }
+.entry a { color: var(--color-primary); }
 .entry pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; color: var(--color); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -269,6 +273,7 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
   <nav class="nav" lang="km" aria-label="ផ្នែក">
     <a class="le-button" href="#write" id="nav-write">សរសេរ</a>
     <a class="le-button" href="#library" id="nav-library">បណ្ណាល័យគំរូ</a>
+    <a class="le-button" href="#docs" id="nav-docs">ឯកសារមេរៀន</a>
   </nav>
 
   <div id="view-write" style="display:contents">
@@ -327,6 +332,30 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       <h2 id="lib-heading">គំរូ</h2>
       <p class="hint" id="lib-empty">មិនទាន់មានគំរូទេ។ បញ្ចូលគំរូដំបូងរបស់អ្នកនៅខាងលើ។</p>
       <ul class="entries" id="entries"></ul>
+    </section>
+  </div>
+
+  <div id="view-docs" lang="km" hidden style="display:contents">
+    <form class="form" id="doc-form">
+      <p class="hint">បញ្ចូលឯកសារមេរៀនតែងកំណាព្យ (សៀវភៅ មេរៀនសាលា កំណត់ត្រា)។ ឯកសារនីមួយៗមានស្ថានភាព «រង់ចាំម៉ាស៊ីនរៀន» រហូតដល់ Claude អានវា ដាក់ច្បាប់ចូលម៉ាស៊ីន សាកល្បងលើកំណាព្យពិត ហើយសរសេរសេចក្តីសង្ខេបនូវអ្វីដែលបានរៀន។</p>
+      <div class="row2">
+        <div class="f"><label for="doc-title">ចំណងជើង</label><input type="text" id="doc-title" required></div>
+        <div class="f"><label for="doc-source">អ្នកនិពន្ធ ឬប្រភព (សៀវភៅ ទំព័រ សាលា)</label><input type="text" id="doc-source"></div>
+      </div>
+      <div class="row2">
+        <div class="f"><label for="doc-kind">ប្រភេទ</label>
+          <select class="le-select" id="doc-kind"><option value="textbook">សៀវភៅ</option><option value="lesson">មេរៀនសាលា</option><option value="notes">កំណត់ត្រាផ្ទាល់ខ្លួន</option><option value="article">អត្ថបទ / គេហទំព័រ</option></select></div>
+        <div class="f"><label for="doc-link">តំណ (ស្រេចចិត្ត)</label><input type="text" id="doc-link" inputmode="url" placeholder="https://"></div>
+      </div>
+      <div class="f"><label for="doc-text">អត្ថបទមេរៀន (បិទភ្ជាប់)</label><textarea class="big" id="doc-text"></textarea></div>
+      <div class="f"><label for="doc-file">ឬឯកសារ (PDF រូបភាព ឬអត្ថបទ)</label><input type="file" id="doc-file" accept="application/pdf,image/*,.txt,.md"></div>
+      <div class="actions"><button type="submit" class="le-button" id="doc-save">បញ្ចូលឯកសារ</button><span class="status" id="doc-status" aria-live="polite"></span></div>
+    </form>
+
+    <section class="lib">
+      <h2 id="doc-heading">ឯកសារ</h2>
+      <p class="hint" id="doc-empty">មិនទាន់មានឯកសារទេ។</p>
+      <ul class="entries" id="docs"></ul>
     </section>
   </div>
 
@@ -784,6 +813,14 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
       lessons = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, before: String(x.before || ''), after: String(x.after || ''), reasons: Array.isArray(x.reasons) ? x.reasons.map(String) : [], note: String(x.note || '') }; });
       renderLessons(); render(); renderPack();
     }, function () {});
+    try { assets = await window.claude.use('assets'); } catch (e) { assets = null; }
+    if (!assets) document.getElementById('doc-file').disabled = true;
+    db.collection('docs').orderBy('at', 'desc').onSnapshot(function (snap) {
+      docs = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, title: String(x.title || ''), source: String(x.source || ''),
+        kind: String(x.kind || ''), link: String(x.link || ''), text: String(x.text || ''), asset: /^[0-9a-f]{32}$/.test(String(x.asset || '')) ? String(x.asset) : '',
+        fileName: String(x.fileName || ''), status: String(x.status || 'pending'), summary: String(x.summary || '') }; });
+      renderDocs(); renderPack();
+    }, function () {});
     db.collection('library').orderBy('at', 'desc').onSnapshot(function (snap) {
       library = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, title: String(x.title || ''), author: String(x.author || ''),
         kind: String(x.kind || 'lyric'), tempo: String(x.tempo || ''), text: String(x.text || ''), story: String(x.story || ''), why: String(x.why || '') }; });
@@ -893,6 +930,11 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     L.push('- កុំនិយាយរឿងដែលគេដឹងហើយ (ឧ. យប់ងងឹត)។ ឃ្លានីមួយៗគួរមានមនុស្ស ទង្វើ ទីកន្លែង ឬអារម្មណ៍ពិត។');
     L.push('- ពាក្យជួន៖ អឃោសៈជួនជាមួយអឃោសៈ ឃោសៈជួនជាមួយឃោសៈ លើកលែងស្រៈ ួ ៀ ឿ។');
     L.push('- រាប់ព្យាង្គតាមសំឡេងនិយាយពិត (ប្រវត្តិសាស្ត្រ = ៣)។');
+    var learnedDocs = docs.filter(function (d) { return d.status === 'learned' && d.summary; });
+    if (learnedDocs.length) {
+      L.push(''); L.push('## ច្បាប់ដែលបានរៀនពីឯកសារមេរៀន');
+      learnedDocs.forEach(function (d) { L.push('- ' + d.title + (d.source ? ' (' + d.source + ')' : '') + '៖ ' + d.summary); });
+    }
     var fixed = lessons.filter(function (l) { return l.after; }), open = lessons.filter(function (l) { return !l.after; });
     if (fixed.length) {
       L.push(''); L.push('## កំហុសដែលធ្លាប់ធ្វើ និងរបៀបកែ (កុំធ្វើដដែលទៀត)');
@@ -936,13 +978,73 @@ body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); paddi
     } catch (e) { fallback(); }
   });
 
+  /* ---------- Lesson documents: teaching material the engine is taught from ---------- */
+  var docs = [], assets = null;
+  var DOCKIND = { textbook: 'សៀវភៅ', lesson: 'មេរៀនសាលា', notes: 'កំណត់ត្រា', article: 'អត្ថបទ' };
+  function renderDocs() {
+    var ul = document.getElementById('docs'); ul.textContent = '';
+    document.getElementById('doc-empty').hidden = docs.length > 0;
+    var learned = docs.filter(function (d) { return d.status === 'learned'; }).length;
+    document.getElementById('doc-heading').textContent = docs.length ? 'ឯកសារ (' + km(docs.length) + ' · បានរៀន ' + km(learned) + ')' : 'ឯកសារ';
+    docs.forEach(function (d) {
+      var li = document.createElement('li'); li.className = 'entry';
+      var head = document.createElement('div'); head.className = 'head';
+      var h = document.createElement('h3'); h.textContent = d.title;
+      var right = document.createElement('div'); right.className = 'actions';
+      var chip = document.createElement('span'); chip.className = 'chip-s' + (d.status === 'learned' ? ' done' : '');
+      chip.textContent = d.status === 'learned' ? 'បានរៀន' : 'រង់ចាំម៉ាស៊ីនរៀន';
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'fix'; del.textContent = 'លុប';
+      del.setAttribute('aria-label', 'លុបឯកសារ៖ ' + d.title);
+      del.addEventListener('click', async function () { del.disabled = true; try { await db.collection('docs').doc(d.id).delete(); } catch (x) { del.disabled = false; } });
+      right.append(chip, del); head.append(h, right);
+      var meta = document.createElement('p'); meta.className = 'meta';
+      meta.textContent = [d.source, DOCKIND[d.kind] || ''].filter(Boolean).join(' · ');
+      li.append(head, meta);
+      if (d.summary) { var sm = document.createElement('p'); sm.className = 'why'; sm.textContent = 'អ្វីដែលម៉ាស៊ីនបានរៀន៖ ' + d.summary; li.appendChild(sm); }
+      var links = document.createElement('p'); links.className = 'meta';
+      if (/^https:\/\//.test(d.link)) { var a = document.createElement('a'); a.href = d.link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'បើកតំណ'; links.appendChild(a); }
+      if (d.asset) { if (links.childNodes.length) links.appendChild(document.createTextNode(' · ')); var f = document.createElement('a'); f.href = '/_blob/' + d.asset; f.target = '_blank'; f.rel = 'noopener'; f.textContent = 'បើកឯកសារ' + (d.fileName ? ' (' + d.fileName + ')' : ''); links.appendChild(f); }
+      if (links.childNodes.length) li.appendChild(links);
+      if (d.text) { var det = document.createElement('details'); var su = document.createElement('summary'); su.textContent = 'មើលអត្ថបទ'; var pre = document.createElement('pre'); pre.textContent = d.text; det.append(su, pre); li.appendChild(det); }
+      ul.appendChild(li);
+    });
+  }
+  document.getElementById('doc-form').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var st = document.getElementById('doc-status'), btn = document.getElementById('doc-save');
+    var title = document.getElementById('doc-title').value.trim(), text = document.getElementById('doc-text').value.trim();
+    var file = document.getElementById('doc-file').files[0], link = document.getElementById('doc-link').value.trim();
+    if (!title) { st.textContent = 'សូមបញ្ចូលចំណងជើង។'; return; }
+    if (!text && !file && !link) { st.textContent = 'សូមបិទភ្ជាប់អត្ថបទ ភ្ជាប់ឯកសារ ឬដាក់តំណ។'; return; }
+    if (link && !/^https:\/\//.test(link)) { st.textContent = 'តំណត្រូវចាប់ផ្តើមដោយ https://'; return; }
+    if (!db) { st.textContent = 'មិនអាចរក្សាទុកបានទេ៖ សូមចូលគណនី ហើយបើកទំព័រនេះម្តងទៀត។'; return; }
+    btn.disabled = true; st.textContent = 'កំពុងរក្សាទុក…';
+    try {
+      var assetId = '', fileName = '';
+      if (file) {
+        if (!assets) throw { code: 'no_upload' };
+        var type = file.type || (/\.md$/i.test(file.name) ? 'text/markdown' : 'text/plain');
+        var up = await assets.upload(file, { type: type });
+        assetId = up.id; fileName = file.name;
+      }
+      await db.collection('docs').add({ title: title, source: document.getElementById('doc-source').value.trim(),
+        kind: document.getElementById('doc-kind').value, link: link, text: text, asset: assetId, fileName: fileName,
+        status: 'pending', summary: '', at: new Date().toISOString(), by: me || '' });
+      this.reset(); st.textContent = 'បានបញ្ចូល។ ឯកសារនេះនឹងត្រូវបានរៀននៅពេល Claude អានវា។';
+    } catch (x) {
+      st.textContent = x && x.code === 'no_upload' ? 'ការភ្ជាប់ឯកសារមិនអាចប្រើបាននៅទីនេះ៖ សូមបិទភ្ជាប់អត្ថបទជំនួសវិញ។'
+                                                  : 'រក្សាទុកមិនបាន (' + (x && x.code || 'error') + ')។ សូមព្យាយាមម្តងទៀត។';
+    }
+    btn.disabled = false;
+  });
+
   function route() {
-    var lib = location.hash === '#library';
-    document.getElementById('view-write').hidden = lib;
-    document.getElementById('view-write').style.display = lib ? 'none' : 'contents';
-    var vl = document.getElementById('view-library'); vl.hidden = !lib; vl.style.display = lib ? 'contents' : 'none';
-    document.getElementById('nav-write').setAttribute('aria-current', lib ? 'false' : 'page');
-    document.getElementById('nav-library').setAttribute('aria-current', lib ? 'page' : 'false');
+    var view = location.hash === '#library' ? 'library' : location.hash === '#docs' ? 'docs' : 'write';
+    ['write', 'library', 'docs'].forEach(function (v) {
+      var el = document.getElementById('view-' + v), on = v === view;
+      el.hidden = !on; el.style.display = on ? 'contents' : 'none';
+      document.getElementById('nav-' + v).setAttribute('aria-current', on ? 'page' : 'false');
+    });
   }
   window.addEventListener('hashchange', route); route(); renderPack();
 
