@@ -10,6 +10,24 @@ Lyric Engine is a quiet, utilitarian interface for walking someone through a tec
 - **Feedback is short and human.** A copy button reads "Copy", then "Copied!" or "Couldn't copy :(". That emoticon is the only playful note — no emoji anywhere else.
 - Sentence case everywhere. No headings inside the flow; the sequence of prompts is the structure.
 
+## Lyrics: meaning first
+
+Lyric Engine counts syllables and finds rhymes, but it never decides what a line should say. Meaning and feeling come first; syllables and rhyme serve them.
+
+- **Never trade meaning for a rhyme or a count.** A line that rhymes but says nothing, or says something untrue, is a failure. Keep a word that carries the meaning even when it breaks the pattern.
+- **The engine shows, it does not suggest.** It reports syllable counts and rhyme groups as quiet information next to the writer's words. It never inserts, replaces or proposes words. Any future suggestion feature must start from the meaning the writer wants, not from sound.
+- **The lyrics are the loudest thing on the screen.** Counts are set in a muted tone; rhyme is marked with a thin underline and a letter, never by rewriting or recolouring the text itself.
+- **Use real verse in examples, never filler.** Example lyrics must mean something and feel something. This is the system's reference verse; note how the end of line 3 (កាយ) rhymes into the middle of line 4 (ឆ្ងាយ):
+
+  ```
+  ច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ
+  ប៉ុន្តែមាសមេអ្នកនៅសែនឆ្ងាយ
+  ថ្ងៃណាបាននែបនិត្យកាយ
+  បើនៅឆ្ងាយឈងមិនដល់
+  ```
+
+  (ឈង: to reach out and hold, to embrace.)
+
 ## Visual foundations
 
 **Colour.** Set the page on `background` with all text in `color`. `color-primary` is the only accent: links, checked toggles and the focus ring. `color-primary-light` replaces it only on a focused link. The command block sits on `color-code-block`. Copy feedback swaps a button's fill and border to `color-copy-success-*` or `color-copy-fail-*` and changes its words — never colour alone.
