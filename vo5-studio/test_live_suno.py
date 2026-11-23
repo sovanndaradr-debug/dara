@@ -182,7 +182,7 @@ class Tests(unittest.TestCase):
     def test_pasted_lyrics_are_sung(self):
         music("vocal", box2="បទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
         sent = [c[2] for c in CALLS if c[0] == "POST"][0]
-        self.assertEqual(sent["lyrics"], "បទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
+        self.assertEqual(sent["lyrics"], "[Verse]\nបទដែលខ្ញុំសរសេរក្នុង Lyric Engine")
 
     def test_music_works_without_step_one(self):
         out = live_suno.generate_audio({}, "បទ", "Khmer ballad", "ទំនុកច្រៀង", "vocal", "v6", "male", "")
@@ -207,6 +207,17 @@ class Tests(unittest.TestCase):
             self.assertEqual(len(rows), 1); self.assertIn("1,000", note)
         finally:
             os.environ.pop("VO5_FEATURES", None)
+
+    def test_song_sheet_matches_lyric_engine(self):
+        sheet = live_suno.song_sheet("ក ខ\nគ ឃ\n\nបន្ទរ មួយ\nបន្ទរ ពីរ\n\nង ច\n\nបន្ទរ  មួយ\nបន្ទរ ពីរ")
+        self.assertEqual([l for l in sheet.split("\n") if l.startswith("[")], ["[Verse 1]", "[Chorus]", "[Verse 2]", "[Chorus]"])
+        self.assertEqual(live_suno.song_sheet("[Intro]\nអូន"), "[Intro]\nអូន")
+        self.assertEqual(live_suno.song_sheet("មួយឃ្លា"), "[Verse]\nមួយឃ្លា")
+
+    def test_untagged_box2_is_labelled_before_sending(self):
+        out = music("vocal", box2="ក\n\nបន្ទរ\n\nខ\n\nបន្ទរ")
+        sent = [c[2] for c in CALLS if c[0] == "POST"][0]["lyrics"]
+        self.assertTrue(sent.startswith("[Verse 1]")); self.assertIn("[Chorus]", sent); self.assertIn("ស្លាក", out[0])
 
     def test_signed_in_user_wins(self):
         req = types.SimpleNamespace(username="real@x")

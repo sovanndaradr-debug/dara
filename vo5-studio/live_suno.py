@@ -200,6 +200,33 @@ class SunoV6LiveEngine:
 
 
 # ==============================================================================
+# 1b. SONG SHEET — same rules as LyricEngine.songSheet (lyric-engine/engine.js)
+# ==============================================================================
+def song_sheet(text: str) -> str:
+    """Label blank-line separated stanzas for Suno: [Verse n], and [Chorus] for a stanza that
+    comes back word for word. Text that already has [..] tag lines is returned as written."""
+    import re
+    t = re.sub(r"[ \t\u00A0]+$", "", (text or "").replace("\r", ""), flags=re.M).strip()
+    if not t or re.search(r"^\s*\[[^\]]+\]\s*$", t, flags=re.M):
+        return t
+    stanzas = [x.strip() for x in re.split(r"\n\s*\n", t) if x.strip()]
+    if len(stanzas) == 1:
+        return "[Verse]\n" + stanzas[0]
+    key = lambda x: re.sub(r"\s+", "", x)
+    counts: Dict[str, int] = {}
+    for x in stanzas:
+        counts[key(x)] = counts.get(key(x), 0) + 1
+    out, verse = [], 0
+    for x in stanzas:
+        if counts[key(x)] > 1:
+            out.append("[Chorus]\n" + x)
+        else:
+            verse += 1
+            out.append(f"[Verse {verse}]\n" + x)
+    return "\n\n".join(out)
+
+
+# ==============================================================================
 # 2. STEP 1 — SCRIPT SCENE -> BLUEPRINT (free)
 # ==============================================================================
 def anchor_in_lyrics(anchor: str, lyrics: str) -> bool:
@@ -294,7 +321,9 @@ def generate_audio(state: Dict[str, Any], title: str, box1: str, box2: str, mode
     title, box1, box2 = (title or "").strip(), (box1 or "").strip(), (box2 or "").strip()
     if not box1 or (mode in (MODE_BOTH, MODE_VOCAL) and not box2):
         return ("⚠️ សូមបំពេញ Box 1 (រចនាបថភ្លេង) និង Box 2 (ទំនុកច្រៀង) ជាមុនសិន។", None, None, "", state)
-    state["lyric_blueprint"] = {"title": title or "Untitled", "box1": box1, "box2": box2}
+    tagged = song_sheet(box2) if box2 else box2
+    labelled = bool(box2) and tagged != box2
+    state["lyric_blueprint"] = {"title": title or "Untitled", "box1": box1, "box2": tagged}
 
     api_key = server_api_key()
     if not api_key:
@@ -338,6 +367,8 @@ def generate_audio(state: Dict[str, Any], title: str, box1: str, box2: str, mode
             user_id=user_id, input_tokens=7500, output_tokens=3500, cached_tokens=5500, action_type="SONG")
 
     status = (f"🎵 Suno បានបង្កើត {made} track។" if made else "❌ មិនមាន track ត្រូវបានបង្កើតទេ (មិនបានកាត់កូតា)។")
+    if labelled and mode in (MODE_BOTH, MODE_VOCAL):
+        status += "\nℹ️ បានដាក់ស្លាក [Verse] [Chorus] ឲ្យ Box 2 ដោយស្វ័យប្រវត្តិ។"
     if warnings:
         status += "\n" + "\n".join("⚠️ " + w for w in warnings)
     links = "### 🎧 លទ្ធផលពី Suno\n" + ("\n".join(lines) if lines else "មិនមាន track។")
