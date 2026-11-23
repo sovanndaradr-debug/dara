@@ -218,3 +218,8 @@ assert.strictEqual(E.songSheet('[Intro]\nអូន'), '[Intro]\nអូន');    
 assert.strictEqual(E.songSheet('មួយឃ្លា'), '[Verse]\nមួយឃ្លា');
 assert.strictEqual(E.songSheet('  '), '');
 console.log('song sheet passed');
+
+// spacing for singing models: syllables separated, tags untouched
+assert.strictEqual(E.spacedForSinging('[Verse]\nច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ'), '[Verse]\nច័ន្ទ អើយ អ្នក រះ ខ្ពស់ ម្លេះ ទេ');
+assert.strictEqual(E.spacedForSinging('ធម្មតាកើតជាមនុស្ស'), 'ធម្មតា កើត ជា មនុស្ស');   // special words keep their spelling
+console.log('spacing for singing passed');

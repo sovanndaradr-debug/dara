@@ -432,6 +432,18 @@
     return sts.map(function (x) { return (seen[key(x)] > 1 ? '[Chorus]' : '[Verse ' + (++v) + ']') + '\n' + x; }).join('\n\n');
   }
 
-  root.LyricEngine = { analyze: analyze, guessSections: guessSections, songSheet: songSheet, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
+  /* For singing models: Khmer is written without spaces, so a model may not see where a syllable
+     ends. Put a space between the engine's syllables; [tags], blank lines and Latin text stay as written. */
+  function spacedForSinging(text) {
+    return String(text || '').split(/\r?\n/).map(function (line) {
+      if (!/[\u1780-\u17FF]/.test(line) || /^\s*\[[^\]]+\]\s*$/.test(line)) return line;
+      var out = lineSyllables(line).filter(function (s) { return s.text; }).map(function (s) { return s.text; }).join(' ');
+      // special words are split into sounded pieces (ធម·ម·តា); the singer must see their real spelling
+      Object.keys(EXCEPTIONS).forEach(function (w) { if (EXCEPTIONS[w].length > 1) out = out.split(EXCEPTIONS[w].join(' ')).join(w); });
+      return out;
+    }).join('\n');
+  }
+
+  root.LyricEngine = { analyze: analyze, guessSections: guessSections, songSheet: songSheet, spacedForSinging: spacedForSinging, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
   if (typeof module !== 'undefined') module.exports = root.LyricEngine;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -178,6 +178,15 @@ class Tests(unittest.TestCase):
         finally:
             FakeSuno.null_task = False
 
+    def test_khmer_diction_defaults(self):
+        payload, w = live_suno.SunoV6LiveEngine.build_payload("t", "slow ballad", lyrics="ក", vocal_gender="male")
+        self.assertIn("Thai accent", payload["negative_tags"])
+        self.assertTrue(any("Khmer" in x for x in w))       # Box 1 should say Khmer
+        payload, w = live_suno.SunoV6LiveEngine.build_payload("t", "sung in Khmer, ballad", lyrics="ក")
+        self.assertFalse(any("Khmer" in x for x in w))
+        payload, w = live_suno.SunoV6LiveEngine.build_payload("t", "ambient", instrumental=True)
+        self.assertNotIn("negative_tags", payload)
+
     def test_invalid_token_is_explained(self):
         FakeSuno.fail_create = True
         out = music("vocal")

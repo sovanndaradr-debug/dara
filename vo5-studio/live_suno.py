@@ -57,6 +57,9 @@ except ImportError:
 # ==============================================================================
 SUNO_API_BASE_URL = os.getenv("SUNO_API_BASE_URL", "https://api.acedata.cloud")
 SUNO_MODELS = ["chirp-v6", "chirp-v6-wild", "chirp-v6-mini"]
+# Priority (owner, 2026-11-23): clear Khmer pronunciation and soul first, rhythm and mood second.
+# Steer away from accents Suno drifts to with Khmer script. Override with SUNO_NEGATIVE_TAGS.
+DEFAULT_NEGATIVE_TAGS = "English lyrics, Thai accent, Chinese accent, mumbled vocals, autotune"
 BOX1_MAX = 120            # Box 1 Golden Formula
 BOX2_MAX = 5000           # lyrics limit sent to Suno
 MP3_MAX_BYTES = 40 * 1024 * 1024
@@ -146,6 +149,12 @@ class SunoV6LiveEngine:
             payload["duration"] = int(duration)
         if vocal_gender in ("male", "female") and not instrumental:
             payload["vocal_gender"] = "m" if vocal_gender == "male" else "f"
+        if not instrumental:
+            neg = os.getenv("SUNO_NEGATIVE_TAGS", DEFAULT_NEGATIVE_TAGS).strip()
+            if neg:
+                payload["negative_tags"] = neg
+            if "khmer" not in style.lower():
+                warnings.append("Box 1 មិនបានប្រាប់ថាច្រៀងជាភាសាខ្មែរ៖ បន្ថែម «sung in Khmer, clear Khmer diction» ដើម្បីឲ្យបញ្ចេញសំឡេងច្បាស់។")
         return payload, warnings
 
     @classmethod
