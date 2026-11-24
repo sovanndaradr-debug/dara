@@ -1,0 +1,1248 @@
+<title>Lyric Engine</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300..700&display=swap">
+<style>
+/* Lyric Engine design system: tokens.css + bundle.css, unchanged */
+/* Lyric Engine — generated from tokens.json */
+:root, [data-theme="light"] {
+  --background: #fafafa;
+  --color: #000000;
+  --color-primary: #0088ff;
+  --color-primary-light: #42a7ff;
+  --color-code-block: #ebf9ff;
+  --color-select-border: rgb(211, 211, 211);
+  --color-checkbox-background: rgb(211, 211, 211);
+  --color-checkbox-tick: #ffffff;
+  --color-copy-success-background: #c1ffc6;
+  --color-copy-success-border: rgb(0, 255, 0);
+  --color-copy-fail-background: #ffcbcb;
+  --color-copy-fail-border: rgb(255, 0, 0);
+  --shadow-focus: 0 0 0 3px #0088ff;
+}
+[data-theme="dark"] {
+  --background: #0e0e0e;
+  --color: rgb(190, 190, 190);
+  --color-primary: #0088ff;
+  --color-primary-light: #42a7ff;
+  --color-code-block: #101315;
+  --color-select-border: rgb(54, 54, 54);
+  --color-checkbox-background: rgb(51, 51, 51);
+  --color-checkbox-tick: #ffffff;
+  --color-copy-success-background: #001f00;
+  --color-copy-success-border: rgb(0, 255, 0);
+  --color-copy-fail-background: #1f0000;
+  --color-copy-fail-border: rgb(255, 0, 0);
+  --shadow-focus: 0 0 0 3px #0088ff;
+}
+[data-theme="accessible-light"] {
+  --background: #fafafa;
+  --color: #000000;
+  --color-primary: #0066cc;
+  --color-primary-light: #004c99;
+  --color-code-block: #ebf9ff;
+  --color-select-border: #767676;
+  --color-checkbox-background: #767676;
+  --color-checkbox-tick: #ffffff;
+  --color-copy-success-background: #c1ffc6;
+  --color-copy-success-border: #1a7f37;
+  --color-copy-fail-background: #ffcbcb;
+  --color-copy-fail-border: #c62828;
+  --shadow-focus: 0 0 0 3px #0066cc;
+}
+[data-theme="accessible-dark"] {
+  --background: #0e0e0e;
+  --color: #d6d6d6;
+  --color-primary: #4da3ff;
+  --color-primary-light: #8cc4ff;
+  --color-code-block: #101315;
+  --color-select-border: #808080;
+  --color-checkbox-background: #808080;
+  --color-checkbox-tick: #0e0e0e;
+  --color-copy-success-background: #001f00;
+  --color-copy-success-border: #3fb950;
+  --color-copy-fail-background: #1f0000;
+  --color-copy-fail-border: #ff6b6b;
+  --shadow-focus: 0 0 0 3px #4da3ff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --background: #0e0e0e;
+    --color: rgb(190, 190, 190);
+    --color-primary: #0088ff;
+    --color-primary-light: #42a7ff;
+    --color-code-block: #101315;
+    --color-select-border: rgb(54, 54, 54);
+    --color-checkbox-background: rgb(51, 51, 51);
+    --color-checkbox-tick: #ffffff;
+    --color-copy-success-background: #001f00;
+    --color-copy-success-border: rgb(0, 255, 0);
+    --color-copy-fail-background: #1f0000;
+    --color-copy-fail-border: rgb(255, 0, 0);
+    --shadow-focus: 0 0 0 3px #0088ff;
+  }
+}
+:root {
+  --space-control: 5px;
+  --space-section: 20px;
+  --space-page: 25px;
+  --space-indent: 40px;
+  --size-toggle: 20px;
+  --width-main: 1250px;
+  --radius-pill: 999em;
+  --radius-checkbox: 3px;
+  --radius-round: 100%;
+  --font-sans: 'Segoe UI', Arial, 'Kantumruy Pro', Helvetica, sans-serif;
+  --font-mono: Consolas, monospace;
+  --font-khmer: 'Kantumruy Pro', 'Segoe UI', sans-serif;
+}
+/* Lyric Engine — component styles, exact to the source page; colours, spacing and radii come from tokens.css */
+.le-page { color: var(--color); background: var(--background); font-family: var(--font-sans); font-size: 16px; line-height: 1.15; }
+.le-page p { margin: 0; }
+.le-main { max-width: var(--width-main); padding: var(--space-page); margin: auto; font-size: 16px; }
+.le-main > div, .le-main > fieldset { margin-bottom: var(--space-section); }
+:focus:not(:focus-visible) { outline: none; }
+
+.le-button, .le-select {
+  border: 1px solid var(--color-select-border);
+  background-color: var(--background);
+  color: var(--color);
+  padding: var(--space-control);
+  margin-top: var(--space-control);
+  box-shadow: 0 0 0 0 var(--color-primary);
+  transition: border 200ms, padding 200ms, box-shadow 200ms;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.15;
+  cursor: pointer;
+}
+.le-button:focus-visible, .le-select:focus-visible, .le-checkbox:focus-visible, .le-radio:focus-visible {
+  box-shadow: var(--shadow-focus); outline: none;
+}
+.le-button.success { background: var(--color-copy-success-background); border-color: var(--color-copy-success-border); }
+.le-button.fail { background: var(--color-copy-fail-background); border-color: var(--color-copy-fail-border); }
+
+.le-label * { vertical-align: middle; }
+.le-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.le-fieldset > legend { padding: 0; }
+.le-checkbox, .le-radio {
+  margin: 0 var(--space-control) 0 0;
+  appearance: none; -webkit-appearance: none;
+  background-color: var(--color-checkbox-background);
+  height: var(--size-toggle); width: var(--size-toggle);
+  position: relative;
+  transition: background-color 200ms, box-shadow 200ms;
+}
+.le-checkbox { border-radius: var(--radius-checkbox); top: -1px; }
+.le-checkbox::after {
+  content: ""; transition: border-color 200ms; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px;
+  border: solid transparent; border-width: 0 3px 3px 0; transform: rotate(45deg);
+}
+.le-checkbox:checked { background-color: var(--color-primary); }
+.le-checkbox:checked::after { border-color: var(--color-checkbox-tick); }
+.le-radio { border-radius: var(--radius-round); top: -2px; }
+.le-radio::after {
+  content: ""; position: absolute; left: 10px; top: 10px; width: 0; height: 0; border-radius: var(--radius-round);
+  background-color: transparent; transition: width 200ms, height 200ms, left 200ms, top 200ms, background-color 100ms;
+}
+.le-radio:checked::after { background-color: var(--color-primary); left: 2px; top: 2px; width: 16px; height: 16px; }
+/* Accessible themes: the checked radio becomes a primary ring on the page colour with a smaller dot, so the state reads at >= 3:1 */
+[data-theme^="accessible"] .le-radio:checked { background-color: var(--background); box-shadow: inset 0 0 0 2px var(--color-primary); }
+[data-theme^="accessible"] .le-radio:checked:focus-visible { box-shadow: var(--shadow-focus), inset 0 0 0 2px var(--color-primary); }
+[data-theme^="accessible"] .le-radio:checked::after { left: 5px; top: 5px; width: 10px; height: 10px; }
+
+.le-link { color: var(--color-primary); text-decoration-color: transparent; transition: text-decoration 200ms, color 200ms; }
+.le-link:hover { text-decoration: underline; text-decoration-color: currentColor; }
+.le-link:focus-visible { text-decoration: underline 2px; color: var(--color-primary-light); outline: none; }
+
+.le-command {
+  font-family: var(--font-mono); margin-left: var(--space-indent); background: var(--color-code-block);
+  padding: var(--space-control); display: block; overflow-x: auto; color: var(--color); line-height: 1.15;
+}
+.le-command ul { list-style: '$ '; margin: 0; }
+.le-command li { white-space: pre; }
+.le-indent { margin-left: var(--space-indent); }
+
+/* Khmer: mark Khmer text lang="km" (or class le-km) for Kantumruy Pro and room for stacked vowels and subscripts */
+:lang(km), .le-km { font-family: var(--font-khmer); line-height: 1.7; }
+.le-button:lang(km), .le-select:lang(km) { line-height: 1.7; }
+
+/* Prototype additions: one muted text tone and four rhyme colours (each also carries a letter) */
+:root { --muted: #5c5c5c; --rhyme-a: #a64f00; --rhyme-b: #0067a3; --rhyme-c: #00785a; --rhyme-d: #a8457e; --rhyme-ink: #ffffff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme]) { --muted: #9a9a9a; --rhyme-a: #ffa64d; --rhyme-b: #56b4e9; --rhyme-c: #3fd1a3; --rhyme-d: #e7a1c8; --rhyme-ink: #0e0e0e; color-scheme: dark; } }
+:root[data-theme="dark"], :root[data-theme="accessible-dark"] { --muted: #9a9a9a; --rhyme-a: #ffa64d; --rhyme-b: #56b4e9; --rhyme-c: #3fd1a3; --rhyme-d: #e7a1c8; --rhyme-ink: #0e0e0e; color-scheme: dark; }
+
+[hidden] { display: none !important; }
+html, body { background: var(--background); }
+body { margin: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: var(--space-page); display: flex; flex-direction: column; gap: var(--space-section); }
+.top { display: flex; flex-direction: column; gap: 4px; }
+.name { margin: 0; font-family: var(--font-sans); font-size: 16px; font-weight: 600; color: var(--color); }
+.tag { margin: 0; color: var(--muted); font-size: 14px; }
+.field { display: flex; flex-direction: column; gap: var(--space-control); }
+.field label { color: var(--color); }
+.le-textarea {
+  width: 100%; box-sizing: border-box; min-height: 10.5em; resize: vertical;
+  padding: 10px 12px; border: 1px solid var(--color-select-border); border-radius: var(--radius-checkbox);
+  background: var(--background); color: var(--color);
+  font-family: var(--font-khmer); font-size: 16px; line-height: 1.7;
+  transition: box-shadow 200ms, border 200ms;
+}
+.le-textarea:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.handoff { margin: 8px 0 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.summary { margin: 0; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.line { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--color-select-border); }
+.line.gap { border-bottom: 0; padding: 4px 0; }
+.syl { min-width: 0; overflow-wrap: anywhere; color: var(--color); }
+.syl .dot { color: var(--muted); padding: 0 2px; }
+.syl .minor { color: var(--muted); }
+.syl .r { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.r.A { text-decoration-color: var(--rhyme-a); } .r.B { text-decoration-color: var(--rhyme-b); }
+.r.C { text-decoration-color: var(--rhyme-c); } .r.D { text-decoration-color: var(--rhyme-d); }
+.count { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.2em; text-align: right; white-space: nowrap; }
+.badge { min-width: 22px; height: 22px; border-radius: var(--radius-round); display: inline-grid; place-items: center; font: 600 12px/1 var(--font-sans); color: var(--rhyme-ink); }
+.badge.none { background: transparent; }
+.badge.A { background: var(--rhyme-a); } .badge.B { background: var(--rhyme-b); } .badge.C { background: var(--rhyme-c); } .badge.D { background: var(--rhyme-d); }
+.note { margin: 0; color: var(--muted); font-size: 14px; }
+.line { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+.fix { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 1px solid var(--color-select-border); border-radius: var(--radius-pill); padding: 1px 10px; cursor: pointer; transition: box-shadow 200ms, border 200ms; }
+.fix:hover { color: var(--color); }
+.fix:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.remember { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.remember b { color: var(--color); font-weight: 400; }
+.panel { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 14px; border-bottom: 1px solid var(--color-select-border); }
+.panel .was { margin: 0; color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+.panel label { font-size: 14px; color: var(--color); }
+.panel textarea, .panel input[type=text] { width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--color-select-border); border-radius: var(--radius-checkbox); background: var(--background); color: var(--color); font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; }
+.panel textarea:focus-visible, .panel input[type=text]:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.chips legend { padding: 0; margin-bottom: 4px; font-size: 14px; color: var(--color); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.status { font-size: 13px; color: var(--muted); }
+.memory { display: flex; flex-direction: column; gap: 10px; }
+.memory h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--color); }
+.memory .lead { margin: 0; color: var(--muted); font-size: 14px; }
+.lessons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.lesson { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--color-select-border); }
+.lesson .before { margin: 0; color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); overflow-wrap: anywhere; }
+.lesson .after { margin: 0; color: var(--color); overflow-wrap: anywhere; }
+.lesson .after.pending { color: var(--muted); font-style: italic; }
+.lesson .why { margin: 0; font-size: 13px; color: var(--muted); }
+.lesson .del { grid-row: 1 / span 3; grid-column: 2; align-self: start; }
+.tally { margin: 0; font-size: 14px; color: var(--color); }
+.nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav a { text-decoration: none; display: inline-block; }
+.nav .le-button[aria-current="page"] { border-color: var(--color-primary); color: var(--color-primary); }
+.form { display: flex; flex-direction: column; gap: 10px; }
+.form .row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.form .f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.form label { font-size: 14px; color: var(--color); }
+.form input[type=text], .form textarea { width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--color-select-border); border-radius: var(--radius-checkbox); background: var(--background); color: var(--color); font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; }
+.form textarea.big { min-height: 9em; resize: vertical; }
+.form input:focus-visible, .form textarea:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.form .hint { margin: 0; font-size: 13px; color: var(--muted); }
+.learned { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid var(--color-select-border); border-bottom: 1px solid var(--color-select-border); }
+.learned h2, .lib h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--color); }
+.learned p { margin: 0; font-size: 14px; color: var(--color); }
+.learned .muted { color: var(--muted); }
+.lib { display: flex; flex-direction: column; gap: 8px; }
+.entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.entry { padding: 12px 0; border-bottom: 1px solid var(--color-select-border); display: flex; flex-direction: column; gap: 4px; }
+.entry .head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.entry h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--color); overflow-wrap: anywhere; }
+.entry .meta, .entry .stats { margin: 0; font-size: 13px; color: var(--muted); }
+.entry .why { margin: 0; font-size: 14px; color: var(--color); }
+.entry details summary { cursor: pointer; font-size: 14px; color: var(--color-primary); }
+#pack pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 14px; line-height: 1.7; color: var(--color); max-height: 24em; overflow: auto; }
+#pack summary { cursor: pointer; font-size: 14px; color: var(--color-primary); }
+.chip-s { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: var(--radius-pill); border: 1px solid var(--color-select-border); color: var(--muted); white-space: nowrap; }
+.chip-s.done { border-color: var(--color-primary); color: var(--color-primary); }
+.form input[type=file] { font: inherit; font-size: 14px; color: var(--color); }
+.entry a { color: var(--color-primary); }
+.entry pre { margin: 6px 0 0; white-space: pre-wrap; font-family: var(--font-khmer); font-size: 16px; line-height: 1.7; color: var(--color); }
+.le-page:not(.trainer-on) .trainer, .le-page:not(.trainer-on) .nav { display: none; }
+.trainer-switch { margin: 40px 0 0; text-align: center; }
+.trainer-switch .le-link { background: none; border: 0; padding: 8px; font: inherit; font-size: 14px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.memory summary { cursor: pointer; list-style-position: outside; }
+.memory summary h2 { display: inline; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="le-page">
+<main class="wrap">
+  <div class="top">
+    <h1 class="name">Lyric Engine</h1>
+    <p class="tag" lang="km">អត្ថន័យ និងអារម្មណ៍មកមុន។ ម៉ាស៊ីននេះគ្រាន់តែរាប់ព្យាង្គ និងបង្ហាញពាក្យជួន ដើម្បីជួយអ្នកពិនិត្យ។</p>
+  </div>
+
+  <nav class="nav" lang="km" aria-label="ផ្នែក">
+    <a class="le-button" href="#write" id="nav-write">សរសេរ</a>
+    <a class="le-button trainer" href="#library" id="nav-library">បណ្ណាល័យគំរូ</a>
+    <a class="le-button trainer" href="#docs" id="nav-docs">ឯកសារមេរៀន</a>
+  </nav>
+
+  <div id="view-write" style="display:contents">
+  <div class="field">
+    <label for="lyrics" lang="km">សរសេរ ឬបិទភ្ជាប់អត្ថបទចម្រៀងរបស់អ្នក៖</label>
+    <textarea id="lyrics" class="le-textarea" lang="km" spellcheck="false">ច័ន្ទអើយអ្នករះខ្ពស់ម្លេះទេ
+ប៉ុន្តែមាសមេអ្នកនៅសែនឆ្ងាយ
+ថ្ងៃណាបាននែបនិត្យកាយ
+បើនៅឆ្ងាយឈងមិនដល់</textarea>
+  </div>
+
+  <p class="summary" id="summary" lang="km" aria-live="polite"></p>
+  <p class="handoff" id="handoff" lang="km" hidden><button type="button" class="le-button" id="to-music">ចម្លងទៅតន្ត្រី (Box 2)</button> <span id="to-music-status" aria-live="polite"></span></p>
+  <ol class="lines" id="lines" lang="km" aria-label="លទ្ធផល"></ol>
+
+  <section class="memory" id="memory" lang="km" hidden>
+    <details>
+    <summary><h2>អ្វីដែល Lyric Engine បានរៀនពីអ្នក</h2></summary>
+    <p class="lead">រាល់ពេលអ្នកកែឃ្លាមួយ ម៉ាស៊ីនចងចាំ ហើយរំលឹកអ្នកនៅពេលឃ្លានោះលេចមកម្តងទៀត។</p>
+    <p class="tally" id="tally"></p>
+    <ul class="lessons" id="lessons"></ul>
+    </details>
+  </section>
+
+  <p class="trainer-switch" lang="km"><button type="button" class="le-link" id="trainer-toggle" aria-pressed="false">ឧបករណ៍បង្រៀនម៉ាស៊ីន</button></p>
+
+  </div>
+
+  <div id="view-library" lang="km" hidden style="display:contents">
+    <form class="form" id="lib-form">
+      <p class="hint">បញ្ចូលទំនុកច្រៀង កំណាព្យ ឬសាច់រឿងដែលល្អ។ ម៉ាស៊ីនវិភាគវា ហើយរៀនពីវា។ សូមកត់ឈ្មោះអ្នកនិពន្ធ ឬប្រភពជានិច្ច។</p>
+      <div class="row2">
+        <div class="f"><label for="lib-title">ចំណងជើង</label><input type="text" id="lib-title" required></div>
+        <div class="f"><label for="lib-author">អ្នកនិពន្ធ ឬប្រភព</label><input type="text" id="lib-author"></div>
+      </div>
+      <div class="row2">
+        <div class="f"><label for="lib-kind">ប្រភេទ</label>
+          <select class="le-select" id="lib-kind"><option value="lyric">ទំនុកច្រៀង</option><option value="poem">កំណាព្យ</option><option value="story">សាច់រឿង</option></select></div>
+        <div class="f"><label for="lib-tempo">ចង្វាក់</label>
+          <select class="le-select" id="lib-tempo"><option value="">មិនដឹង</option></select></div>
+      </div>
+      <div class="f"><label for="lib-text">អត្ថបទ</label><textarea class="big" id="lib-text" required></textarea></div>
+      <div class="f"><label for="lib-story">សាច់រឿង ឬស្ថានភាព (តួអង្គ ទីកន្លែង អារម្មណ៍)</label><textarea id="lib-story" rows="2"></textarea></div>
+      <div class="f"><label for="lib-why">ហេតុអ្វីល្អ?</label><textarea id="lib-why" rows="2"></textarea></div>
+      <div class="actions"><button type="submit" class="le-button" id="lib-save">បញ្ចូលទៅបណ្ណាល័យ</button><span class="status" id="lib-status" aria-live="polite"></span></div>
+    </form>
+
+    <section class="learned" id="learned" hidden>
+      <h2>អ្វីដែលម៉ាស៊ីនរៀនពីគំរូ</h2>
+      <div id="learned-body"></div>
+    </section>
+
+    <section class="learned" id="pack">
+      <h2>កញ្ចប់សម្រាប់កម្មវិធីបង្កើតទំនុកច្រៀង</h2>
+      <p class="hint">អត្ថបទមួយដែលរួមបញ្ចូល ច្បាប់កំពូល មេរៀនពីការកែរបស់អ្នក និងគំរូល្អៗ។ ចម្លងវាទៅដាក់ក្នុងការណែនាំ (prompt) របស់កម្មវិធីបង្កើតទំនុកច្រៀង (ឧ. Box 2)។</p>
+      <div class="actions"><button type="button" class="le-button" id="pack-copy">ចម្លងកញ្ចប់</button><span class="status" id="pack-status" aria-live="polite"></span></div>
+      <details><summary>មើលកញ្ចប់</summary><pre id="pack-text"></pre></details>
+    </section>
+
+    <section class="lib">
+      <h2 id="lib-heading">គំរូ</h2>
+      <p class="hint" id="lib-empty">មិនទាន់មានគំរូទេ។ បញ្ចូលគំរូដំបូងរបស់អ្នកនៅខាងលើ។</p>
+      <ul class="entries" id="entries"></ul>
+    </section>
+  </div>
+
+  <div id="view-docs" lang="km" hidden style="display:contents">
+    <form class="form" id="doc-form">
+      <p class="hint">បញ្ចូលឯកសារមេរៀនតែងកំណាព្យ (សៀវភៅ មេរៀនសាលា កំណត់ត្រា)។ ឯកសារនីមួយៗមានស្ថានភាព «រង់ចាំម៉ាស៊ីនរៀន» រហូតដល់ Claude អានវា ដាក់ច្បាប់ចូលម៉ាស៊ីន សាកល្បងលើកំណាព្យពិត ហើយសរសេរសេចក្តីសង្ខេបនូវអ្វីដែលបានរៀន។</p>
+      <div class="row2">
+        <div class="f"><label for="doc-title">ចំណងជើង</label><input type="text" id="doc-title" required></div>
+        <div class="f"><label for="doc-source">អ្នកនិពន្ធ ឬប្រភព (សៀវភៅ ទំព័រ សាលា)</label><input type="text" id="doc-source"></div>
+      </div>
+      <div class="row2">
+        <div class="f"><label for="doc-kind">ប្រភេទ</label>
+          <select class="le-select" id="doc-kind"><option value="textbook">សៀវភៅ</option><option value="lesson">មេរៀនសាលា</option><option value="notes">កំណត់ត្រាផ្ទាល់ខ្លួន</option><option value="article">អត្ថបទ / គេហទំព័រ</option></select></div>
+        <div class="f"><label for="doc-link">តំណ (ស្រេចចិត្ត)</label><input type="text" id="doc-link" inputmode="url" placeholder="https://"></div>
+      </div>
+      <div class="f"><label for="doc-text">អត្ថបទមេរៀន (បិទភ្ជាប់)</label><textarea class="big" id="doc-text"></textarea></div>
+      <div class="f"><label for="doc-file">ឬឯកសារ (PDF រូបភាព ឬអត្ថបទ)</label><input type="file" id="doc-file" accept="application/pdf,image/*,.txt,.md"></div>
+      <div class="actions"><button type="submit" class="le-button" id="doc-save">បញ្ចូលឯកសារ</button><span class="status" id="doc-status" aria-live="polite"></span></div>
+    </form>
+
+    <section class="lib">
+      <h2 id="doc-heading">ឯកសារ</h2>
+      <p class="hint" id="doc-empty">មិនទាន់មានឯកសារទេ។</p>
+      <ul class="entries" id="docs"></ul>
+    </section>
+  </div>
+
+  <p class="note" lang="km">ម៉ាស៊ីនមិនដឹងពីអត្ថន័យទេ។ កុំប្តូរពាក្យដែលមានន័យល្អ ដើម្បីតែឲ្យជួន ឬគ្រប់ព្យាង្គ។ ឃ្លាដែលមានអក្សរ និងពណ៌ដូចគ្នា ជួននឹងគ្នា។ សញ្ញា ≈ មានន័យថាម៉ាស៊ីនទាយ ហើយអាចខុស។</p>
+</main>
+</div>
+
+<script>
+/* Lyric Engine core: analyze(text) -> lines with syllables, counts and rhyme groups.
+   One function for one word, one line or a whole song. Rule-based; Khmer and English. */
+(function (root) {
+  var COENG = '្';
+  function isCons(c) { return c >= 'ក' && c <= 'អ'; }
+  function isIndepVowel(c) { return c >= 'ឣ' && c <= 'ឳ'; }
+  function isDepVowel(c) { return c >= 'ា' && c <= 'ៅ'; }
+  function isKhmerMark(c) { return c >= 'ំ' && c <= '៑' || c === '៝'; }
+  function isKhmer(c) { return c >= 'ក' && c <= '៿'; }
+  var CLOSING = 'ំះៈ';            // nikahit ំ, reahmuk ះ, yuukaleapintu ៈ: syllable already closed
+  var FINAL_MARKS = '់៌៍';         // bantoc ់, robat ៌, toandakhiat ៍: marks a final consonant
+  var O_SERIES = 'គឃងជឈញឌឍណទធនពភមយរលវ';  // ណ is a-series in modern use, kept simple below
+  O_SERIES = O_SERIES.replace('ណ', '');
+  // independent vowels written as the dependent vowel they sound like
+  var INDEP = { 'ឥ': 'ិ', 'ឦ': 'ី', 'ឧ': 'ុ', 'ឩ': 'ូ', 'ឪ': 'ៅ', 'ឫ': 'ឹ', 'ឬ': 'ឺ', 'ឭ': 'ឹ', 'ឮ': 'ឺ', 'ឯ': 'ែ', 'ឰ': 'ៃ', 'ឱ': 'ោ', 'ឲ': 'ោ', 'ឳ': 'ៅ' };
+  var ONSET_SUBS = 'រលវយនមងញ';
+  // consonants that often stand alone as a minor syllable before a vowel syllable: រ·បៀប ក·ន្លែង ស·ម្រាប់ ម·នុស្ស
+  var MINOR_ONSETS = 'កគចជតទបពភរលសម';
+  // A subscript cluster whose base is a nasal closes the syllable before it (រណ្តៅ ចម្ការ កម្សាន្ត លម្អិត);
+  // other bases start a syllable (ពុក·ផ្ដាំ ឆ្កួត·ល្បែង), and so do the common initials ម្ដ ម្ត ម្ច (ម្ដាយ ម្ចាស់)
+  function closesBefore(cl) { return 'ងញណនម'.indexOf(cl.base) >= 0 && !(cl.base === 'ម' && 'ដតច'.indexOf(cl.subs[0]) >= 0); }
+  var FINAL_CLASS = {};
+  [['k', 'កខគឃ'], ['ng', 'ង'], ['c', 'ចឆជឈ'], ['nh', 'ញ'], ['t', 'ដឋឌឍតថទធ'], ['n', 'ណន'],
+   ['p', 'បផពភ'], ['m', 'ម'], ['y', 'យ'], ['', 'រ'], ['l', 'លឡ'], ['w', 'វ'], ['h', 'សឝឞហ'], ['', 'អ']]
+    .forEach(function (p) { p[1].split('').forEach(function (ch) { FINAL_CLASS[ch] = p[0]; }); });
+  // Words whose written form breaks the rules (a silent final vowel). Grows as people correct counts.
+  // Words whose written form breaks the rules: their real syllables, written out. Grows as people correct counts.
+  var EXCEPTIONS = { 'ជាតិ': ['ជាតិ'], 'ធាតុ': ['ធាតុ'], 'ហេតុ': ['ហេតុ'], 'ប្រវត្តិ': ['ប្រ', 'វត្តិ'],
+    'ធម្មតា': ['ធម', 'ម', 'តា'], 'ធម្មជាតិ': ['ធម', 'ម', 'ជាតិ'], 'នគរ': ['ន', 'គរ'], 'ញាតិ': ['ញាតិ'], 'មនុស្ស': ['ម', 'នុស្ស'], 'ភូមិ': ['ភូមិ'], 'កោដិ': ['កោដិ'], 'ស័ក្តិ': ['ស័ក្តិ'], 'ស័ក្ដិ': ['ស័ក្ដិ'], 'សូត្រ': ['សូត្រ'], 'សីលធម៌': ['សី', 'ល', 'ធម៌'], 'កន្លែង': ['កន', 'លែង'], 'សិទ្ធិ': ['សិទ្ធិ'], 'សិទិ្ធ': ['សិទិ្ធ'] };
+
+  // 1. Khmer orthographic clusters: base (+ coeng subscripts) + vowels and marks
+  function clusters(run) {
+    var out = [], i = 0;
+    while (i < run.length) {
+      var c = run[i], cl = { text: c, base: c, subs: [], vowels: '', marks: '' };
+      i++;
+      while (i < run.length) {
+        var d = run[i];
+        if (d === COENG && i + 1 < run.length && isCons(run[i + 1])) { cl.subs.push(run[i + 1]); cl.text += d + run[i + 1]; i += 2; }
+        else if (isDepVowel(d) || d === '\u17D0') { cl.vowels += d; cl.text += d; i++; }   // ័ (short a) acts as a vowel: ប្រ·យ័ត្ន
+        else if (isKhmerMark(d)) { cl.marks += d; cl.text += d; i++; }
+        else break;
+      }
+      out.push(cl);
+    }
+    return out;
+  }
+  function hasNucleus(cl) { return cl.vowels.length > 0 || /[ំះៈ]/.test(cl.marks) || isIndepVowel(cl.base); }
+  function isFinalMarked(cl) { return (!cl.vowels && /[់៌៍]/.test(cl.marks)) || /៍/.test(cl.marks); }   // ៍ silences its vowel too: កេរ្តិ៍
+
+  // 2. Clusters -> syllables. Returns [{text, rime, approx}]
+  function khmerSyllables(run) {
+    var cls = clusters(run), syl = [], cur = null;
+    for (var k = 0; k < cls.length; k++) {
+      var cl = cls[k], next = cls[k + 1];
+      if (cl.base === '\u17D7') {   // ៗ: repeat the previous syllable
+        if (cur) { cur = { text: '\u17D7', base: cur.base, subs: cur.subs.slice(), vowels: cur.vowels, marks: cur.marks, fin: cur.fin, closed: true, approx: true }; syl.push(cur); }
+        continue;
+      }
+      if (!isCons(cl.base) && !isIndepVowel(cl.base)) continue;
+      if (cur && /៍/.test(cl.marks) && !cl.vowels.replace('ិ', '').length) { cur.text += cl.text; cur.closed = true; continue; }   // ការ·ណ៍ -> ការណ៍
+      var canTakeFinal = cur && !cur.closed;
+      var bare = !hasNucleus(cl);
+      if (cl.base === '\u17A2' && bare && cl.subs.length === 0 && !isFinalMarked(cl)) canTakeFinal = false;   // អ is never a final (ណ្តៅ|អបាយ)
+      if (cur && cur.nikahitOnly && bare && cl.subs.length === 0 && cl.base === 'ង' && !cur.fin) { attach(cur, cl); continue; }   // ាំង
+      if (canTakeFinal && isFinalMarked(cl)) { attach(cur, cl); continue; }
+      var silentNext = next && isCons(next.base) && next.subs.length && !hasNucleus(next) && !isFinalMarked(next) && ONSET_SUBS.indexOf(next.subs[0]) < 0 && !(cls[k + 2] && (isFinalMarked(cls[k + 2]) || !hasNucleus(cls[k + 2])));
+      var n2 = cls[k + 2];
+      var closedPair = next && isCons(next.base) && next.subs.length === 0 && (isFinalMarked(next) || !hasNucleus(next)) && (!n2 || hasNucleus(n2) && !isFinalMarked(n2));   // ស·កល ន·រក រ·វល់
+      if (canTakeFinal && bare && cl.subs.length === 0 && !cur.vowels && isCons(cur.base) && !silentNext && !closedPair) { attach(cur, cl); continue; }   // ប្រ·កប   // inherent vowel + final: រង, ជន
+      if (canTakeFinal && bare && cl.subs.length === 0) {
+        // A run of bare consonants after an open syllable pairs up as (onset + final):
+        // odd run -> the first one closes the open syllable (រៀ|ន រស់), even run -> they pair (ត្រី|ផង, ប្រើ|អញ, ឱ្យ|យល់)
+        var n = 0;
+        for (var q = k; q < cls.length; q++) {
+          var c2 = cls[q];
+          if (c2.base === '\u17A2' && !hasNucleus(c2)) break;
+          if (/៍/.test(c2.marks)) break;   // a silent ៍ tail does not count
+          if (isCons(c2.base) && c2.subs.length === 0 && !hasNucleus(c2)) { n++; continue; }
+          // ង្ស in ពង្ស / វង្ស: a vowel-less subscript cluster is the final of the bare consonant before it
+          if (isCons(c2.base) && c2.subs.length && !hasNucleus(c2) && !isFinalMarked(c2) && 'រល'.indexOf(c2.subs[0]) < 0 && !(cls[q + 1] && (isFinalMarked(cls[q + 1]) || !hasNucleus(cls[q + 1])))) n++;   // not គ្រ|ប់
+          // ណ in រណ្តៅ, ម in លម្អិត: the base of a following subscript cluster is heard as a final when the
+          // subscript is the real onset (a stop); with ្រ ្ល ្វ ្យ ្ន ្ម ្ង ្ញ ្ហ the base is the onset (ក្រុង)
+          if (isCons(c2.base) && c2.subs.length && hasNucleus(c2) && closesBefore(c2)) n++;   // ល·ម្អិត, but ពុក·ផ្ដាំ
+          break;
+        }
+        // ...unless the run ends in a likely minor syllable before a vowel syllable: ម្អិ|ត រ·បៀប (not ម្អិ·តរ)
+        var after = cls[k + n], lastRun = cls[k + n - 1];
+        var minorEnd = n >= 2 && n % 2 === 0 && !!cur.vowels && after && hasNucleus(after) && lastRun && !isFinalMarked(lastRun) && MINOR_ONSETS.indexOf(lastRun.base) >= 0;
+        if (n % 2 === 1 || minorEnd) { attach(cur, cl); continue; }
+      }
+      if (canTakeFinal && bare && cl.subs.length > 0 && !('រល'.indexOf(cl.subs[0]) >= 0 && next && !/^[ិុ]$/.test(cur.vowels))) {   // បុត្រ·ទាំង (after a short vowel ្រ is silent)   // ស្រី·ស្រ·ដី, but មិត្រ បុត្រ (silent at word end)
+        // a subscript cluster with no vowel ends the syllable unless a bare consonant follows (សង្គម vs ចន្ទ)
+        var nextBare = next && isCons(next.base) && !hasNucleus(next) && !isFinalMarked(next) && next.subs.length === 0;   // សង្គម (ម follows) vs បុណ្យ|អ្នក
+        if (!nextBare || cl.subs[0] === cl.base || FINAL_CLASS[cl.subs[0]] === FINAL_CLASS[cl.base]) { attach(cur, cl); cur.approx = true; continue; }   // មគ្គ·ផល
+        cur.approx = true;
+      }
+      var indepClosed = isIndepVowel(cl.base) && cl.subs.length > 0;   // ឲ្យ ឱ្យ end in -y
+      cur = { text: cl.text, base: cl.base, subs: cl.subs.slice(), vowels: cl.vowels, marks: cl.marks, fin: '', closed: /[ំះៈ៏]/.test(cl.marks), nikahitOnly: /ំ/.test(cl.marks) && !/[ះៈ]/.test(cl.marks), approx: false };
+      if (indepClosed) { cur.closed = true; cur.fin = cl.subs[0]; }
+      syl.push(cur);
+    }
+    function attach(s, cl) { s.text += cl.text; s.fin = cl.base; s.closed = true; }
+    return syl.map(function (s, i) {
+      // a minor syllable (ម·នុស្ស ក·ម្លាំង ប·ន្លា): bare inherent vowel inside a word; classical poets may count it as half
+      var minor = i < syl.length - 1 && !s.vowels && !s.fin && !s.marks && isCons(s.base) && !s.approx;
+      var fin = s.fin ? (FINAL_CLASS[s.fin] !== undefined ? FINAL_CLASS[s.fin] : s.fin) : '';
+      var r = khmerRime(s);
+      return { text: s.text, rime: r, vowel: s.written,
+               onset: s.base + s.subs.join(''), approx: s.approx, minor: minor };
+    });
+  }
+  function khmerRime(s) {
+    var series = O_SERIES.indexOf(s.base) >= 0 ? 'o' : 'a';
+    if (s.marks.indexOf('៉') >= 0) series = 'a';   // muusikatoan ៉ shifts to a-series
+    if (s.marks.indexOf('៊') >= 0) series = 'o';   // triisap ៊ shifts to o-series
+    var nasal = s.marks.replace(/[^ំៈ]/g, '');
+    var fin = s.fin ? (FINAL_CLASS[s.fin] !== undefined ? FINAL_CLASS[s.fin] : s.fin) : '';
+    var v = (s.vowels || '-') + nasal;
+    if (isIndepVowel(s.base)) { series = 'a'; v = INDEP[s.base] || s.base; }
+    s.written = v + ':' + (s.marks.indexOf('ះ') >= 0 && !fin ? 'h' : fin);
+    if (/^[\u17BD\u17C0\u17BF]/.test(v)) series = '*';   // ួ ៀ ឿ rhyme across អឃោសៈ / ឃោសៈ (house rule)    // ឯង sounds like -ែង
+    if (s.marks.indexOf('ះ') >= 0 && !fin) fin = 'h';                     // ចុះ rhymes with ខុស
+    if (series === 'a' && v === '\u17B6\u17C6' && !fin) { v = '-'; fin = 'm'; }
+    if (v === '\u17C6' && !fin) { v = '-'; fin = 'm'; }
+    return series + ':' + v + ':' + fin;
+  }
+
+  // English: vowel groups, minus a silent final e
+  function englishSyllables(word) {
+    var w = word.toLowerCase().replace(/[^a-z']/g, '');
+    if (!w) return [];
+    var n = (w.replace(/e$/, '').match(/[aeiouy]+/g) || []).length || 1;
+    var m = w.match(/[aeiouy]+[^aeiouy]*$/);
+    var rime = 'en:' + (m ? m[0].replace(/e$/, '') : w);
+    var out = [];
+    for (var i = 0; i < n; i++) out.push({ text: i === n - 1 ? word : '', rime: i === n - 1 ? rime : null, approx: false, en: true });
+    out[0].text = word;
+    for (var j = 1; j < n; j++) out[j].text = '';
+    return out;
+  }
+
+  function lineSyllables(line) {
+    var out = [];
+    line = String(line).replace(/[ \t\u00A0\u200B]+\u17D7/g, '\u17D7');
+    // split into Khmer runs and other words
+    var re = /[ក-៝]+|[A-Za-z']+/g, m;
+    while ((m = re.exec(line))) {
+      var run = m[0];
+      if (isKhmer(run[0])) {
+        // exceptions first, greedy longest match
+        var i = 0, buf = '';
+        var keys = Object.keys(EXCEPTIONS).sort(function (a, b) { return b.length - a.length; });
+        while (i < run.length) {
+          var hit = null;
+          for (var k = 0; k < keys.length; k++) if (run.substr(i, keys[k].length) === keys[k]) { hit = keys[k]; break; }
+          if (hit) {
+            if (buf) { out = out.concat(khmerSyllables(buf)); buf = ''; }
+            EXCEPTIONS[hit].forEach(function (piece, pi, all) {
+              var ps = khmerSyllables(piece), last = ps[ps.length - 1] || {};
+              var minor = pi < all.length - 1 && /^[ក-អ]$/.test(piece);   // ធម·ម·តា ម·នុស្ស
+              out.push({ text: piece, rime: last.rime || null, vowel: last.vowel, onset: last.onset, approx: false, minor: minor });
+            });
+            i += hit.length;
+          } else { buf += run[i]; i++; }
+        }
+        if (buf) out = out.concat(khmerSyllables(buf));
+      } else {
+        out = out.concat(englishSyllables(run));
+      }
+    }
+    return out;
+  }
+
+  // 3. The one function
+  function analyze(text) {
+    var lines = String(text || '').split(/\r?\n/).map(function (raw) {
+      var syl = lineSyllables(raw);
+      var visible = syl.filter(function (s) { return s.text; });
+      var last = null;
+      for (var i = syl.length - 1; i >= 0; i--) if (syl[i].rime) { last = syl[i]; break; }
+      var minors = visible.filter(function (s) { return s.minor; }).length;   // classical poets may leave minor syllables uncounted
+      return { text: raw, syllables: visible.map(function (s) { return { text: s.text, rime: s.rime, vowel: s.vowel, minor: !!s.minor }; }),
+               count: syl.length, min: syl.length - minors, approx: syl.some(function (s) { return s.approx; }), endRime: last ? last.rime : null, group: null,
+               techniques: techniques(syl), fillers: fillersIn(raw) };
+    });
+    // rhyme groups: line endings that share a rime with another line ending
+    var byRime = {};
+    lines.forEach(function (l, i) { if (l.endRime && l.count) (byRime[l.endRime] = byRime[l.endRime] || []).push(i); });
+    var groups = [], letters = 'ABCDEFGH';
+    Object.keys(byRime).forEach(function (r) { if (byRime[r].length > 1) groups.push({ rime: r, lines: byRime[r] }); });
+    groups.sort(function (a, b) { return a.lines[0] - b.lines[0]; });
+    groups.forEach(function (g, gi) { g.label = letters[gi % letters.length]; g.lines.forEach(function (li) { lines[li].group = g.label; }); });
+    // internal echoes: syllables inside any line that share a group's rime
+    var rimeLabel = {};
+    groups.forEach(function (g) { rimeLabel[g.rime] = g.label; });
+    lines.forEach(function (l) { l.syllables.forEach(function (s) { s.group = rimeLabel[s.rime] || null; }); });
+    var counted = lines.filter(function (l) { return l.count; });
+    return { lines: lines, groups: groups, totalLines: counted.length,
+             totalSyllables: counted.reduce(function (a, l) { return a + l.count; }, 0) };
+  }
+
+
+  /* ---------- Knowledge: Khmer prosody (what the engine has learned) ----------
+     Sources: km.wikipedia.org pages for each metre (រង្វាស់កាព្យ, ចំណាប់ជួន, ចង្វាក់, បរិយាកាស);
+     studykhmer.com "Khmer Versification: Poetic Meters" for the kinds of rhyme.
+     Positions are 1-based: [line, syllable]. "to" may list alternatives (any one is enough). */
+  var METERS = [
+    { id: 'pheak6', name: 'បទពាក្យ៦', lines: [6, 6, 6, 6], stress: [2, 4], verified: true, use: 'ចង្វាក់លឿន Pop', tempo: ['fast'],
+      links: [{ from: [1, 6], to: [[2, 2], [2, 4]] }, { from: [2, 6], to: [[3, 6]] }, { from: [3, 6], to: [[4, 2], [4, 4]] }],
+      cross: { from: [4, 6], to: [2, 6] }, mood: '' },
+    { id: 'pheak7', name: 'បទពាក្យ៧', lines: [7, 7, 7, 7], stress: [2, 4], verified: true, phrasing: ['2-2-3', '3+4', '4+3'],
+      use: 'និទានរឿង មនោសញ្ចេតនា Pop Ballad, R&B, Acoustic', tempo: ['slow', 'mid'],
+      links: [{ from: [1, 7], to: [[2, 2], [2, 4], [2, 7]] }, { from: [2, 7], to: [[3, 7]] }, { from: [3, 7], to: [[4, 2], [4, 4], [4, 7]] }],
+      samePosition: [[0, 2]],   // វិគីភីឌា៖ បើជួននឹងព្យាង្គ២ ឃ្លា២ ត្រូវជួននឹងព្យាង្គ២ ឃ្លា៤ គ្រប់វគ្គ (ដូចគ្នាសម្រាប់ ៤)
+      cross: { from: [4, 7], to: [2, 7] }, mood: 'គ្រប់បរិយាកាស៖ កំហឹង ទុក្ខសោក ការព្រាត់ប្រាស់ ភាពរីករាយ ការសន្ទនា ធម្មជាតិ' },
+    { id: 'pheak8', name: 'បទពាក្យ៨', lines: [8, 8, 8, 8], stress: [3, 5], verified: true, phrasing: ['4+4'],
+      use: 'សាច់រឿងធំ វីរភាព ធម៌អប់រំ គុណមាតាបិតា ចម្រៀងប្រជាប្រិយ', tempo: ['mid', 'festive'],
+      note: 'សៀវភៅថាព្យាង្គទី៣ ឬទី៥ ប៉ុន្តែកំណាព្យពិត (ឧទាហរណ៍វិគីភីឌា) ជួននៅព្យាង្គទី៤ ដូច្នេះទទួលយក ៣ ៤ ឬ ៥',
+      links: [{ from: [1, 8], to: [[2, 3], [2, 4], [2, 5]] }, { from: [2, 8], to: [[3, 8]] }, { from: [3, 8], to: [[4, 3], [4, 4], [4, 5]] }],
+      cross: { from: [4, 8], to: [2, 8] }, mood: 'គ្រប់បរិយាកាស' },
+    { id: 'kakagati', name: 'បទកាកគតិ', lines: [4, 4, 4, 4, 4, 4, 4], stress: [2], verified: true, use: 'ចង្វាក់លឿន លោតៗ', tempo: ['fast'],
+      links: [{ from: [1, 4], to: [[2, 4]] }, { from: [3, 4], to: [[5, 4]] }, { from: [5, 4], to: [[6, 4]] }],
+      cross: { from: [7, 4], to: [3, 4] }, mood: 'ពណ៌នាទីកន្លែង តួអង្គ ធម្មជាតិ ផ្តើមរឿង ពេលខ្លះសម្តែងទុក្ខសោក' },
+    { id: 'brahmagiti', name: 'បទព្រហ្មគីតិ', lines: [5, 6, 5, 6], stress: [2, 3], stressNote: 'ព្យាង្គ២ ក្នុងឃ្លា៥ព្យាង្គ · ព្យាង្គ៣ ក្នុងឃ្លា៦ព្យាង្គ', verified: true, use: 'ការអប់រំ ទូន្មាន បរិយាកាសឧត្តុង្គឧត្តម', tempo: ['festive'],
+      note: 'ប្រភព ៤ (វិគីភីឌា studykhmer learnkhmer24 rosveasna) ថា ៥-៦-៥-៦',
+      // ១:៥→២:៣ និង ២:៦→៣:៥ ជួនស្ទើរគ្រប់វគ្គ។ ៣:៥→៤:៣ ជាជម្រើស៖ ច្បាប់ប្រុស ៦/៦០ កេរកាលថ្មី ៣៦/១១១ ក្រមង៉ុយ ៣៨/៦៩
+      links: [{ from: [1, 5], to: [[2, 3]] }, { from: [2, 6], to: [[3, 5]] }, { from: [3, 5], to: [[4, 3]], optional: true }],
+      cross: { from: [4, 6], to: [2, 6] }, mood: 'ភាពលន្លង់លន្លោច ទុក្ខសោក ការព្រាត់ប្រាស ប្រដៅ ផ្តែផ្តាំ ការឈឺចាប់' },
+    { id: 'phujong', name: 'បទភុជង្គលីលា', lines: [6, 4, 4], stress: [], verified: true, use: 'ភាពរន្ធត់ តានតឹង ការផ្លាស់ប្តូរភ្ញាក់ផ្អើល Hard Trap', tempo: ['fast', 'drama'],
+      links: [{ from: [1, 6], to: [[2, 4]] }],
+      cross: { from: [3, 4], to: [1, 6], also: [[2, 4]] }, mood: '' },   // វិគីភីឌា៖ ជួននឹងព្យាង្គ៦ ឃ្លា១ និងព្យាង្គ៤ ឃ្លា២ នៃវគ្គបន្ទាប់
+    { id: 'pumnol', name: 'បទពំនោល', lines: [6, 4, 6], stress: [2, 4], verified: true,
+      note: 'EBC ថ្នាក់ទី៩ learnkhmer24 khmer-lit rosveasna៖ ៣ឃ្លា ៦-៤-៦ (ផ្នែកខាងលើនៃទំព័រវិគីភីឌាថា ៤-៦-៤-៦ ខុសពីប្រភពផ្សេង)',
+      links: [{ from: [1, 6], to: [[2, 4]] }],
+      cross: { from: [3, 6], to: [1, 6] }, mood: 'កំហឹង ការគំរាមកំហែង ពាក្យអង្វរ ជម្លោះចម្បាំង', use: 'ការបញ្ចេញអារម្មណ៍ខ្លាំងៗ ល្ខោន', tempo: ['drama'] },
+    { id: 'pheak9', name: 'បទពាក្យ៩', lines: [9, 9, 9, 9], stress: [3, 6], phrasing: ['3+3+3'], verified: true,
+      links: [{ from: [1, 9], to: [[2, 3]] }, { from: [2, 9], to: [[3, 9]] }, { from: [3, 9], to: [[4, 3]] }],
+      cross: { from: [4, 9], to: [2, 9] }, mood: 'មនោសញ្ចេតនា ការឆ្លើយឆ្លងលែបខាយ ស្តីបន្ទោស គំហកគំហឹន',
+      use: 'មនោសញ្ចេតនាជ្រៅ Melisma 6/8 យឺត ឈុតកម្សត់', tempo: ['slow'] },
+    { id: 'bantolkak', name: 'បទបន្ទោលកាក', lines: [4, 6, 4, 6], stress: [2, 4], verified: true,
+      links: [{ from: [1, 4], to: [[2, 2], [2, 4]] }, { from: [2, 6], to: [[3, 4]] }, { from: [3, 4], to: [[4, 2], [4, 4]] }],
+      note: 'ព្យាង្គ៤ ឃ្លា១ ជួននឹងព្យាង្គ២ ឬ៤ ឃ្លា២ (វិគីភីឌា)៖ EBC ថា ៤ តែប៉ុណ្ណោះ',
+      cross: { from: [4, 6], to: [2, 6] }, mood: 'ការសន្ទនា ផ្តោះផ្តងគ្នាពីរនាក់', use: 'ការឆ្លើយឆ្លង ការសន្ទនា', tempo: ['mid', 'festive'] },
+    { id: 'kakha', name: 'បទកខ', lines: null, phrasing: ['4-4'], verified: false, links: [], cross: null,
+      note: 'ចំណាប់ជួនមិនទាន់មានប្រភព', use: 'អប់រំ', tempo: ['festive'] }
+  ];
+
+  /* Which forms suit which tempo (house notes). Meaning still comes first: this is a starting point, not a rule. */
+  var TEMPO = {
+    slow: { name: 'ចង្វាក់យឺត មនោសញ្ចេតនាជ្រៅ (Ballad, Acoustic, 6/8)', advice: 'ប្រយោគវែងល្មម រូបភាព ឈូករីកកណ្តាលស្រះ ទទះស្ទួន', forms: ['pheak7', 'pheak9', 'free'] },
+    mid: { name: 'ចង្វាក់មធ្យម និទានរឿង (Pop, Romvong, R&B)', advice: 'ប្រយោគសន្ទនាធម្មជាតិ ដកដង្ហើមច្បាស់', forms: ['pheak7', 'pheak8'] },
+    fast: { name: 'ចង្វាក់លឿន Rap Rock Trap', advice: 'ឃ្លាខ្លី មុតស្រួច បុកចំស្គរ ទទះស្លាប ញ៉ែងញ៉ង', forms: ['kakagati', 'phujong', 'free'] },
+    festive: { name: 'ពិធីបុណ្យ ប្រពៃណី អប់រំ', advice: 'ពាក្យមានទម្ងន់ ឆ្លើយឆ្លង លើកទឹកចិត្ត', forms: ['pheak8', 'brahmagiti', 'kakha'] },
+    drama: { name: 'ផ្ទុះអារម្មណ៍ខ្លាំង ល្ខោន', advice: 'ទុកចន្លោះផ្អាក ឲ្យភាពស្ងាត់និយាយ', forms: ['pumnol', 'free'] }
+  };
+
+  /* Filler words (ពាក្យបំពេញជើងកាព្យ): words often added only to fill a count or close a rhyme.
+     A hint to re-read the line for meaning, never a rule: the engine cannot judge meaning. */
+  var FILLERS = ['រលែក', 'ពិសក្តៅ', 'ពិសក្ដៅ', 'ត្រួតត្រាល់', 'ថ្ងៃឡើង'];
+  function fillersIn(raw) {
+    var t = String(raw || '').replace(/[\s\u200B]+/g, '');
+    return FILLERS.filter(function (w, i) { return t.indexOf(w) >= 0 && FILLERS.indexOf(w.replace('ដ', 'ត')) === i; });
+  }
+
+  /* Free verse (កម្រងកែវសេរី) sound techniques the engine can see inside one line.
+     ញ៉ែងញ៉ង (twisted rhyme) depends on meaning and humour: the engine cannot judge it. */
+  function techniques(syl) {
+    var out = [], seen = {}, rep = false;
+    syl.forEach(function (s) { if (s.text && s.text.length > 1) { if (seen[s.text]) rep = true; seen[s.text] = 1; } });
+    if (rep) out.push('ទទះស្ទួន');
+    var onsets = {};   // three or more syllables starting with the same consonant cluster (a word like ដដែល alone is not a device)
+    syl.forEach(function (s) { if (s.onset) onsets[s.onset] = (onsets[s.onset] || 0) + 1; });
+    if (Object.keys(onsets).some(function (k) { return onsets[k] >= 3; })) out.push('ទទះស្លាប');
+    var inner = syl.slice(0, -1), rimes = {};
+    for (var j = 0; j < inner.length; j++) {
+      var r = inner[j].rime; if (!r || /:-:$/.test(r)) continue;
+      if (rimes[r] && rimes[r] !== inner[j].text) { out.push('ឈូករីកកណ្តាលស្រះ'); break; }
+      rimes[r] = inner[j].text;
+    }
+    return out;
+  }
+
+  /* Kinds of Khmer rhyme (ចួន), strongest first. Near rhymes ("cheater" rhymes) are a poet's last resort:
+     the engine never counts them, and never suggests them. */
+  /* opts.strict (the house rule, default): អឃោសៈ rhymes only with អឃោសៈ and ឃោសៈ only with ឃោសៈ,
+     except ួ ៀ ឿ. Classical verse also accepts a matching written vowel across series (ត្រី / ពីរ),
+     so fitMeter reads traditional poems with strict: false. */
+  function rhymeKind(a, b, opts) {
+    var strict = !opts || opts.strict !== false;
+    if (!a || !b || !a.text || !b.text) return null;
+    if (a.text === b.text) return 'repeat';                  // the same syllable repeated: allowed, sometimes required
+    if (a.rime && a.rime === b.rime) return 'sound';         // same vowel sound, final sound and series
+    if (!strict && a.vowel && a.vowel === b.vowel) return 'written';
+    if (!strict && a.rime && b.rime && classicalKey(a.rime) === classicalKey(b.rime)) return 'classical';
+    return null;
+  }
+  /* Sounds that classical poets rhyme across series, each seen more than once in ច្បាប់ប្រុស (ព្រហ្មគីតិ):
+     អាល័យ/ថ្ងៃ, ហ័ស/ណាស់, វិញ/ចេញ, កុំ/បារម្ភ, អប្រិយ/ចី, ប្អូន/ខ្លួន. Not used for lyrics (strict). */
+  function classicalKey(r) {
+    var p = r.split(':'), se = p[0], v = p[1], f = p[2];
+    if (v === '\u17D0' && f === 'y') return 'a:\u17C3:';          // ័យ = ៃ
+    if (v === '\u17D0') v = '\u17B6';                            // ័ = short ា
+    if (v === '\u17B7' && f === 'y') { v = '\u17B8'; f = ''; }      // ិយ = ី
+    if (se === 'o' && v === '\u17B7' && f === 'nh') return 'a:\u17C1:nh';   // វិញ = ចេញ
+    if (se === 'a' && v === '\u17BB\u17C6' && !f) return 'o:-:m';  // កុំ = -ម្ភ
+    if (v === '\u17BD') v = '\u17BC';                            // ួ ≈ ូ (ប្អូន/ខ្លួន)
+    if (se === '*') se = 'a';
+    return (v === '\u17BC' ? '*' : se) + ':' + v + ':' + f;
+  }
+
+  function syllablesOf(text) {
+    var out = [];
+    String(text).split(/\r?\n/).forEach(function (l) { out = out.concat(lineSyllables(l).filter(function (s) { return s.text; })); });
+    return out;
+  }
+  // Stanzas end at a blank line or at ។ / ៕
+  function stanzas(text) {
+    return String(text || '').split(/\n\s*\n|[។៕]/).map(function (t) { return t.trim(); }).filter(Boolean);
+  }
+
+  /* Fit a text to one metre. Line breaks are ignored: Khmer often writes two ឃ្លា on one visual line,
+     so the stanza's syllables are cut by the metre's own counts. Reports, never corrects. */
+  function fitMeter(text, id) {
+    var m = METERS.filter(function (x) { return x.id === id; })[0];
+    if (!m) return null;
+    var need = m.lines.reduce(function (a, b) { return a + b; }, 0);
+    var sts = stanzas(text).map(function (t) {
+      var syl = syllablesOf(t), lines = [], k = 0, merged = 0;
+      // Line by line, a line that is too long may fold its minor syllables into the next one (ម·នុស្ស -> មនុស្ស)
+      var vis = String(t).split(/\r?\n/).filter(function (l) { return syllablesOf(l).length; });
+      if (vis.length === m.lines.length && syl.length !== need) {
+        syl = [];
+        vis.forEach(function (l, li) {
+          var ls = syllablesOf(l);
+          for (var j = 0; ls.length > m.lines[li] && j < ls.length - 1; j++) {
+            if (ls[j].minor) { var nx = ls[j + 1]; ls.splice(j, 2, { text: ls[j].text + nx.text, rime: nx.rime, vowel: nx.vowel }); merged++; j--; }
+          }
+          syl = syl.concat(ls);
+        });
+      }
+      m.lines.forEach(function (n) { lines.push(syl.slice(k, k + n)); k += n; });
+      var at = function (p) { var l = lines[p[0] - 1]; return l && l[p[1] - 1]; };
+      var links = m.links.map(function (ln) {
+        var a = at(ln.from), best = null;
+        ln.to.forEach(function (p) { var kind = rhymeKind(a, at(p), { strict: false }); if (kind && !best) best = { pos: p, kind: kind }; });
+        var near = null;   // rhyme found at a neighbouring syllable instead (common in real verse)
+        if (!best && a) ln.to.forEach(function (p) {
+          [p[1] - 1, p[1] + 1].forEach(function (q) { var kind = rhymeKind(a, at([p[0], q]), { strict: false }); if (kind && !near && !best) near = { pos: [p[0], q], kind: kind }; });
+        });
+        return { from: ln.from, fromText: a ? a.text : null, expected: ln.to, found: best, near: near, optional: !!ln.optional };
+      });
+      var consistency = (m.samePosition || []).map(function (pair) {
+        var a = links[pair[0]].found || links[pair[0]].near, b = links[pair[1]].found || links[pair[1]].near;
+        return { links: pair, same: !!(a && b && a.pos[1] === b.pos[1]), positions: [a ? a.pos[1] : null, b ? b.pos[1] : null] };
+      });
+      return { syllables: syl.length, expected: need, merged: merged, lines: lines.map(function (l) { return l.map(function (s) { return s.text; }); }), links: links, consistency: consistency };
+    });
+    var cross = [];
+    if (m.cross) for (var i = 0; i + 1 < sts.length; i++) {
+      var A = sts[i].lines[m.cross.from[0] - 1], B = sts[i + 1].lines[m.cross.to[0] - 1];
+      var a = A && A[m.cross.from[1] - 1], b = B && B[m.cross.to[1] - 1];
+      var mk = function (t) { return { text: t, rime: rimeOf(t), vowel: vowelOf(t) }; };
+      var entry = { stanza: i + 1, from: a, to: b, kind: rhymeKind(mk(a), mk(b), { strict: false }) };
+      if (m.cross.also) entry.also = m.cross.also.map(function (p) {
+        var L = sts[i + 1].lines[p[0] - 1], t = L && L[p[1] - 1];
+        return { pos: p, to: t, kind: rhymeKind(mk(a), mk(t), { strict: false }) };
+      });
+      cross.push(entry);
+    }
+    var total = 0, ok = 0;
+    // an optional link (a rhyme many poets use, not all) earns nothing and costs nothing
+    sts.forEach(function (st) { total += 1; if (st.syllables === st.expected) ok++; st.links.forEach(function (l) { if (l.optional) return; total++; if (l.found) ok++; else if (l.near) ok += 0.5; }); });
+    return { id: m.id, name: m.name, verified: m.verified, note: m.note || '', stanzas: sts, cross: cross, score: total ? ok / total : 0 };
+  }
+  function rimeOf(t) { if (!t) return null; var s = lineSyllables(t); return s.length ? s[s.length - 1].rime : null; }
+  function vowelOf(t) { if (!t) return null; var s = lineSyllables(t); return s.length ? s[s.length - 1].vowel : null; }
+
+  // Which metre is this closest to? Quiet information; returns null unless the fit is clear.
+  function guessMeter(text) {
+    var fits = [];
+    METERS.forEach(function (m) { if (!m.verified || !m.lines) return; var f = fitMeter(text, m.id); if (f) fits.push(f); });
+    fits.sort(function (a, b) { return b.score - a.score; });
+    var best = fits[0], second = fits[1] ? fits[1].score : 0;
+    if (!best) return null;
+    if (best.score >= 0.75) return best;
+    // a long real poem is never perfect: from 3 stanzas, a clear lead (twice the next metre) is enough
+    if (best.stanzas.length >= 3 && best.score >= 0.45 && best.score >= 2 * second) return best;
+    return null;
+  }
+
+  /* A long poem or song can change form (ច្បាប់កូនចៅល្បើក: កាកគតិ, then ព្រហ្មគីតិ; a verse and a chorus).
+     Best metre per stanza, gaps filled from both sides, one-stanza blips absorbed. Returns the sections
+     only when there are at least two, each of 3 stanzas or more; otherwise null (use guessMeter). */
+  function guessSections(text) {
+    var sts = stanzas(text);
+    if (sts.length < 6) return null;
+    var ids = sts.map(function (t) {
+      var best = null;
+      METERS.forEach(function (m) { if (!m.verified || !m.lines) return; var f = fitMeter(t, m.id); if (f && f.score >= 0.6 && (!best || f.score > best.score)) best = { id: m.id, score: f.score }; });
+      return best ? best.id : null;
+    });
+    for (var i = 0; i < ids.length; i++) if (!ids[i]) {
+      var a = null, b = null, j;
+      for (j = i - 1; j >= 0 && !a; j--) a = ids[j];
+      for (j = i + 1; j < ids.length && !b; j++) b = ids[j];
+      ids[i] = a && (a === b || !b) ? a : (b && !a ? b : null);
+    }
+    var runs = [];
+    ids.forEach(function (id, k) { var r = runs[runs.length - 1]; if (r && r.id === id) r.to = k + 1; else runs.push({ id: id, from: k + 1, to: k + 1 }); });
+    runs = runs.filter(function (r, k) {   // absorb short blips into the run before them
+      if (k > 0 && r.to - r.from < 2) { runs[k - 1].to = r.to; return false; } return true;
+    }).reduce(function (out, r) { var last = out[out.length - 1]; if (last && last.id === r.id) last.to = r.to; else out.push(r); return out; }, []);
+    runs = runs.filter(function (r) { return r.id; }).reduce(function (out, r) { var last = out[out.length - 1]; if (last && last.id === r.id) last.to = r.to; else out.push(r); return out; }, []);
+    // A-B-A: a passage sandwiched by the same form is noise (loanwords that miscount), not a change of form
+    for (var q = 1; q + 1 < runs.length; q++) if (runs[q - 1].id === runs[q + 1].id) { runs[q - 1].to = runs[q + 1].to; runs.splice(q, 2); q--; }
+    if (runs.length < 2 || runs.some(function (r) { return r.to - r.from < 2; })) return null;
+    return runs.map(function (r) { var m = METERS.filter(function (x) { return x.id === r.id; })[0]; return { id: r.id, name: m.name, from: r.from, to: r.to }; });
+  }
+
+  /* Hand-off to part 2 (music): stanzas (blank-line separated) labelled the way Suno reads them.
+     A stanza that comes back word for word is the chorus. Text already tagged [..] is left as written. */
+  function songSheet(text) {
+    var t = String(text || '').replace(/\r/g, '').replace(/[ \t\u00A0]+$/gm, '').trim();
+    if (!t) return '';
+    if (/^\s*\[[^\]]+\]\s*$/m.test(t)) return t;
+    var sts = t.split(/\n\s*\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+    var key = function (x) { return x.replace(/\s+/g, ''); }, seen = {};
+    sts.forEach(function (x) { seen[key(x)] = (seen[key(x)] || 0) + 1; });
+    if (sts.length === 1) return '[Verse]\n' + sts[0];
+    var v = 0;
+    return sts.map(function (x) { return (seen[key(x)] > 1 ? '[Chorus]' : '[Verse ' + (++v) + ']') + '\n' + x; }).join('\n\n');
+  }
+
+  /* For singing models: Khmer is written without spaces, so a model may not see where a syllable
+     ends. Put a space between the engine's syllables; [tags], blank lines and Latin text stay as written. */
+  function spacedForSinging(text) {
+    return String(text || '').split(/\r?\n/).map(function (line) {
+      if (!/[\u1780-\u17FF]/.test(line) || /^\s*\[[^\]]+\]\s*$/.test(line)) return line;
+      var out = lineSyllables(line).filter(function (s) { return s.text; }).map(function (s) { return s.text; }).join(' ');
+      // special words are split into sounded pieces (ធម·ម·តា); the singer must see their real spelling
+      Object.keys(EXCEPTIONS).forEach(function (w) { if (EXCEPTIONS[w].length > 1) out = out.split(EXCEPTIONS[w].join(' ')).join(w); });
+      return out;
+    }).join('\n');
+  }
+
+  root.LyricEngine = { analyze: analyze, guessSections: guessSections, songSheet: songSheet, spacedForSinging: spacedForSinging, rhymeKind: rhymeKind, fitMeter: fitMeter, guessMeter: guessMeter, meters: METERS, tempo: TEMPO, fillers: FILLERS };
+  if (typeof module !== 'undefined') module.exports = root.LyricEngine;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+(function () {
+  var KM = '០១២៣៤៥៦៧៨៩';
+  function km(n) { return String(n).replace(/[0-9]/g, function (d) { return KM[d]; }); }
+  var box = document.getElementById('lyrics'), list = document.getElementById('lines'), sum = document.getElementById('summary');
+  try { var saved = localStorage.getItem('lyrics'); if (saved !== null) box.value = saved; } catch (e) {}
+
+  function render() {
+    var r = LyricEngine.analyze(box.value);
+    lastLines = r.lines;
+    list.textContent = '';
+    r.lines.forEach(function (l, idx) {
+      var li = document.createElement('li');
+      if (!l.count) { li.className = 'line gap'; list.appendChild(li); return; }
+      li.className = 'line';
+      var syl = document.createElement('span'); syl.className = 'syl';
+      l.syllables.forEach(function (s, i) {
+        if (i) { var d = document.createElement('span'); d.className = 'dot'; d.textContent = '·'; d.setAttribute('aria-hidden', 'true'); syl.appendChild(d); }
+        var t = document.createElement('span'); t.textContent = s.text;
+        if (s.group) t.className = 'r ' + s.group;
+        if (s.minor) { t.className = (t.className + ' minor').trim(); t.title = 'ព្យាង្គរង៖ កវីបុរាណអាចមិនរាប់'; }
+        syl.appendChild(t);
+      });
+      var c = document.createElement('span'); c.className = 'count';
+      c.textContent = (l.approx ? '≈' : '') + (l.min < l.count ? km(l.min) + '–' : '') + km(l.count);
+      c.title = l.count + ' syllables' + (l.approx ? ' (estimated)' : '') + (l.min < l.count ? ' · ' + l.min + ' if minor syllables are not counted (classical verse)' : '');
+      var b = document.createElement('span'); b.className = 'badge ' + (l.group || 'none');
+      b.textContent = l.group || '';
+      if (l.group) b.setAttribute('aria-label', 'ជួនក្រុម ' + l.group);
+      var f = document.createElement('button'); f.type = 'button'; f.className = 'fix'; f.textContent = 'កែ';
+      f.setAttribute('aria-label', 'កែឃ្លា៖ ' + l.text);
+      f.addEventListener('click', function () { openFix(idx); });
+      li.append(syl, c, b, f);
+      if (l.techniques && l.techniques.length) {
+        var tq = document.createElement('p'); tq.className = 'remember'; tq.textContent = 'ក្បាច់សូរ៖ ' + l.techniques.join(' · ');
+        li.appendChild(tq);
+      }
+      if (l.fillers && l.fillers.length) {
+        var fl = document.createElement('p'); fl.className = 'remember';
+        fl.textContent = 'ពាក្យបំពេញ? «' + l.fillers.join('» «') + '» — តើវាមានន័យនៅទីនេះ ឬមកតែដើម្បីជួន?';
+        li.appendChild(fl);
+      }
+      var seen = lessonFor(l.text);
+      if (seen) {
+        var m = document.createElement('p'); m.className = 'remember';
+        m.append(document.createTextNode('អ្នកធ្លាប់កែឃ្លានេះ' + (seen.after ? ' → ' : ' (រង់ចាំឃ្លាថ្មី)')));
+        if (seen.after) { var bb = document.createElement('b'); bb.textContent = seen.after; m.appendChild(bb); }
+        li.appendChild(m);
+      }
+      list.appendChild(li);
+      if (idx === openLine) list.appendChild(panel);
+    });
+    document.getElementById('handoff').hidden = r.totalLines < 2;
+    document.getElementById('to-music-status').textContent = '';
+    sum.textContent = r.totalLines
+      ? km(r.totalLines) + ' ឃ្លា · ' + km(r.totalSyllables) + ' ព្យាង្គ · ' + km(r.groups.length) + ' ក្រុមពាក្យជួន'
+      : 'សរសេរបន្ទាត់ដំបូងរបស់អ្នក ហើយលទ្ធផលនឹងបង្ហាញនៅទីនេះ។';
+    var parts = r.totalLines ? LyricEngine.guessSections(box.value) : null;
+    var meter = r.totalLines && !parts ? LyricEngine.guessMeter(box.value) : null;
+    if (parts) sum.textContent += ' · ' + parts.map(function (p) { return p.name + ' (វគ្គ ' + km(p.from) + '–' + km(p.to) + ')'; }).join(' → ');
+    else if (meter) sum.textContent += ' · ត្រូវនឹងរង្វាស់' + meter.name;
+  }
+  /* ---------- Corrections: the engine learns from the writer ---------- */
+  var REASONS = [
+    ['obvious', 'ន័យស្រាល៖ និយាយរឿងដែលគេដឹងហើយ'],
+    ['no-person', 'គ្មានមនុស្ស ឬអារម្មណ៍'],
+    ['forced-rhyme', 'ទាញពាក្យមកជួន'],
+    ['mixed-image', 'រូបភាពច្របូកច្របល់'],
+    ['other', 'ផ្សេងៗ']
+  ];
+  var reasonName = {}; REASONS.forEach(function (r) { reasonName[r[0]] = r[1]; });
+  var lessons = [], db = null, me = null, openLine = -1, lastLines = [];
+  function norm(t) { return String(t || '').replace(/[\s​]+/g, '').trim(); }
+  function lessonFor(text) { var n = norm(text); if (!n) return null; for (var i = 0; i < lessons.length; i++) if (norm(lessons[i].before) === n) return lessons[i]; return null; }
+
+  var panel = document.createElement('li'); panel.className = 'panel'; panel.hidden = true;
+  panel.innerHTML = '<p class="was" id="fix-was"></p>' +
+    '<label for="fix-after">ប្តូរទៅជា (អាចទុកទទេ បើមិនទាន់គិតឃើញ)៖</label>' +
+    '<textarea id="fix-after" rows="2" lang="km"></textarea>' +
+    '<fieldset class="chips" id="fix-reasons"><legend>ហេតុអ្វីត្រូវកែ?</legend></fieldset>' +
+    '<label for="fix-note">ពន្យល់បន្ថែម (ស្រេចចិត្ត)៖</label>' +
+    '<input type="text" id="fix-note" lang="km">' +
+    '<div class="actions"><button type="button" class="le-button" id="fix-save">រក្សាទុកមេរៀន</button>' +
+    '<button type="button" class="le-button" id="fix-cancel">បោះបង់</button><span class="status" id="fix-status" aria-live="polite"></span></div>';
+  var reasonsBox = panel.querySelector('#fix-reasons');
+  REASONS.forEach(function (r) {
+    var l = document.createElement('label'); l.className = 'chip le-label';
+    var c = document.createElement('input'); c.type = 'checkbox'; c.className = 'le-checkbox'; c.value = r[0]; c.id = 'reason-' + r[0];
+    l.append(c, document.createTextNode(r[1])); reasonsBox.appendChild(l);
+  });
+  function openFix(i) {
+    var line = lastLines[i]; if (!line) return;
+    openLine = i;
+    var prev = lessonFor(line.text);
+    panel.querySelector('#fix-was').textContent = line.text;
+    panel.querySelector('#fix-after').value = prev ? prev.after || '' : '';
+    panel.querySelector('#fix-note').value = prev ? prev.note || '' : '';
+    reasonsBox.querySelectorAll('input').forEach(function (c) { c.checked = !!(prev && prev.reasons && prev.reasons.indexOf(c.value) >= 0); });
+    panel.querySelector('#fix-status').textContent = db ? '' : 'កំពុងភ្ជាប់ទៅកន្លែងរក្សាទុក…';
+    panel.hidden = false; render();
+    panel.querySelector('#fix-after').focus();
+  }
+  function closeFix() { openLine = -1; panel.hidden = true; render(); }
+  panel.querySelector('#fix-cancel').addEventListener('click', closeFix);
+  panel.querySelector('#fix-save').addEventListener('click', async function () {
+    var line = lastLines[openLine]; if (!line) return;
+    var st = panel.querySelector('#fix-status');
+    if (!db) { st.textContent = 'មិនអាចរក្សាទុកបានទេ៖ សូមចូលគណនី ហើយបើកទំព័រនេះម្តងទៀត។'; return; }
+    var reasons = Array.prototype.filter.call(reasonsBox.querySelectorAll('input'), function (c) { return c.checked; }).map(function (c) { return c.value; });
+    var prev = lessonFor(line.text);
+    var data = { before: line.text.trim(), after: panel.querySelector('#fix-after').value.trim(), reasons: reasons,
+                 note: panel.querySelector('#fix-note').value.trim(), at: new Date().toISOString(), by: me || '' };
+    this.disabled = true; st.textContent = 'កំពុងរក្សាទុក…';
+    try {
+      if (prev) await db.collection('lessons').doc(prev.id).set(data); else await db.collection('lessons').add(data);
+      st.textContent = 'បានរក្សាទុក។'; closeFix();
+    } catch (e) { st.textContent = 'រក្សាទុកមិនបាន (' + (e && e.code || 'error') + ')។ សូមព្យាយាមម្តងទៀត។'; }
+    this.disabled = false;
+  });
+
+  function renderLessons() {
+    var sec = document.getElementById('memory'), ul = document.getElementById('lessons');
+    sec.hidden = lessons.length === 0;
+    ul.textContent = '';
+    var counts = {};
+    lessons.forEach(function (l) {
+      (l.reasons || []).forEach(function (r) { counts[r] = (counts[r] || 0) + 1; });
+      var li = document.createElement('li'); li.className = 'lesson';
+      var b = document.createElement('p'); b.className = 'before'; b.textContent = l.before;
+      var a = document.createElement('p'); a.className = 'after' + (l.after ? '' : ' pending'); a.textContent = l.after ? '→ ' + l.after : '→ រង់ចាំឃ្លាថ្មី';
+      var w = document.createElement('p'); w.className = 'why';
+      w.textContent = (l.reasons || []).map(function (r) { return reasonName[r] || r; }).concat(l.note ? [l.note] : []).join(' · ');
+      var d = document.createElement('button'); d.type = 'button'; d.className = 'fix del'; d.textContent = 'លុប';
+      d.setAttribute('aria-label', 'លុបមេរៀន៖ ' + l.before);
+      d.addEventListener('click', async function () { d.disabled = true; try { await db.collection('lessons').doc(l.id).delete(); } catch (e) { d.disabled = false; } });
+      li.append(b, a, w, d); ul.appendChild(li);
+    });
+    var top = Object.keys(counts).sort(function (x, y) { return counts[y] - counts[x]; });
+    document.getElementById('tally').textContent = lessons.length
+      ? km(lessons.length) + ' មេរៀន' + (top.length ? ' · កំហុសញឹកញាប់៖ ' + top.slice(0, 2).map(function (r) { return reasonName[r] + ' (' + km(counts[r]) + ')'; }).join(', ') : '')
+      : '';
+  }
+
+  (async function connect() {
+    try {
+      var user = window.claude && await window.claude.use('user');
+      if (user) { try { me = await user.id(); } catch (e) {} }
+      db = window.claude && await window.claude.use('db');
+    } catch (e) { db = null; }
+    if (!db) return;
+    db.collection('lessons').orderBy('at', 'desc').onSnapshot(function (snap) {
+      lessons = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, before: String(x.before || ''), after: String(x.after || ''), reasons: Array.isArray(x.reasons) ? x.reasons.map(String) : [], note: String(x.note || '') }; });
+      renderLessons(); render(); renderPack();
+    }, function () {});
+    try { assets = await window.claude.use('assets'); } catch (e) { assets = null; }
+    if (!assets) document.getElementById('doc-file').disabled = true;
+    db.collection('docs').orderBy('at', 'desc').onSnapshot(function (snap) {
+      docs = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, title: String(x.title || ''), source: String(x.source || ''),
+        kind: String(x.kind || ''), link: String(x.link || ''), text: String(x.text || ''), asset: /^[0-9a-f]{32}$/.test(String(x.asset || '')) ? String(x.asset) : '',
+        fileName: String(x.fileName || ''), status: String(x.status || 'pending'), summary: String(x.summary || '') }; });
+      renderDocs(); renderPack();
+    }, function () {});
+    db.collection('library').orderBy('at', 'desc').onSnapshot(function (snap) {
+      library = snap.docs.map(function (d) { var x = d.data() || {}; return { id: d.id, title: String(x.title || ''), author: String(x.author || ''),
+        kind: String(x.kind || 'lyric'), tempo: String(x.tempo || ''), text: String(x.text || ''), story: String(x.story || ''), why: String(x.why || '') }; });
+      renderLibrary(); renderPack();
+    }, function () {});
+  })();
+
+  /* ---------- Example library: good lyrics and stories the engine learns from ---------- */
+  var library = [];
+  var KIND = { lyric: 'ទំនុកច្រៀង', poem: 'កំណាព្យ', story: 'សាច់រឿង' };
+  var tempoSel = document.getElementById('lib-tempo');
+  Object.keys(LyricEngine.tempo).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = LyricEngine.tempo[k].name; tempoSel.appendChild(o); });
+
+  function study(text) {
+    // In Khmer verse a space between Khmer words separates ឃ្លា, so study each phrase as its own line
+    var phrased = String(text).replace(/([\u1780-\u17FF])[ \t\u00A0]+(?=[\u1780-\u17FF])/g, '$1\n');
+    var r = LyricEngine.analyze(phrased), lines = r.lines.filter(function (l) { return l.count; });
+    var counts = lines.map(function (l) { return l.count; }).sort(function (a, b) { return a - b; });
+    var tech = {};
+    lines.forEach(function (l) { (l.techniques || []).forEach(function (t) { tech[t] = (tech[t] || 0) + 1; }); });
+    var m = LyricEngine.guessMeter(text);
+    return { lines: lines.length, syllables: r.totalSyllables, min: counts[0] || 0, max: counts[counts.length - 1] || 0,
+             median: counts.length ? counts[Math.floor(counts.length / 2)] : 0, rhymes: r.groups.length,
+             rhymedLines: lines.filter(function (l) { return l.group; }).length, meter: m ? m.name : '', tech: tech };
+  }
+
+  function renderLibrary() {
+    var ul = document.getElementById('entries'); ul.textContent = '';
+    document.getElementById('lib-empty').hidden = library.length > 0;
+    document.getElementById('lib-heading').textContent = library.length ? 'គំរូ (' + km(library.length) + ')' : 'គំរូ';
+    var agg = { lines: 0, rhymed: 0, meters: {}, tech: {}, medians: [], byTempo: {} };
+    library.forEach(function (e) {
+      var st = study(e.text);
+      agg.lines += st.lines; agg.rhymed += st.rhymedLines; if (st.median) agg.medians.push(st.median);
+      if (st.meter) agg.meters[st.meter] = (agg.meters[st.meter] || 0) + 1;
+      Object.keys(st.tech).forEach(function (t) { agg.tech[t] = (agg.tech[t] || 0) + st.tech[t]; });
+      if (e.tempo) { var bt = agg.byTempo[e.tempo] = agg.byTempo[e.tempo] || []; if (st.median) bt.push(st.median); }
+
+      var li = document.createElement('li'); li.className = 'entry';
+      var head = document.createElement('div'); head.className = 'head';
+      var h = document.createElement('h3'); h.textContent = e.title;
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'fix'; del.textContent = 'លុប';
+      del.setAttribute('aria-label', 'លុបគំរូ៖ ' + e.title);
+      del.addEventListener('click', async function () { del.disabled = true; try { await db.collection('library').doc(e.id).delete(); } catch (x) { del.disabled = false; } });
+      head.append(h, del);
+      var meta = document.createElement('p'); meta.className = 'meta';
+      meta.textContent = [e.author, KIND[e.kind] || '', e.tempo && LyricEngine.tempo[e.tempo] ? LyricEngine.tempo[e.tempo].name : ''].filter(Boolean).join(' · ');
+      var stats = document.createElement('p'); stats.className = 'stats';
+      stats.textContent = km(st.lines) + ' ឃ្លា · ' + (st.min === st.max ? km(st.min) : km(st.min) + '–' + km(st.max)) + ' ព្យាង្គ/ឃ្លា · ' +
+        km(st.rhymedLines) + ' ឃ្លាជួន' + (st.meter ? ' · ' + st.meter : ' · សេរី') +
+        (Object.keys(st.tech).length ? ' · ' + Object.keys(st.tech).join(', ') : '');
+      li.append(head, meta, stats);
+      if (e.why) { var w = document.createElement('p'); w.className = 'why'; w.textContent = 'ល្អព្រោះ៖ ' + e.why; li.appendChild(w); }
+      var d = document.createElement('details'); var sm = document.createElement('summary'); sm.textContent = 'មើលអត្ថបទ';
+      var pre = document.createElement('pre'); pre.textContent = e.text;
+      d.append(sm, pre);
+      if (e.story) { var sp = document.createElement('p'); sp.className = 'meta'; sp.textContent = 'សាច់រឿង៖ ' + e.story; d.appendChild(sp); }
+      li.appendChild(d);
+      ul.appendChild(li);
+    });
+
+    var sec = document.getElementById('learned'), body = document.getElementById('learned-body');
+    sec.hidden = library.length === 0; body.textContent = '';
+    if (!library.length) return;
+    function line(t, muted) { var p = document.createElement('p'); if (muted) p.className = 'muted'; p.textContent = t; body.appendChild(p); }
+    var med = agg.medians.slice().sort(function (a, b) { return a - b; });
+    if (med.length) line('ឃ្លាធម្មតាមាន ' + km(med[Math.floor(med.length / 2)]) + ' ព្យាង្គ (មធ្យមភាគ)។');
+    if (agg.lines) line(km(Math.round(100 * agg.rhymed / agg.lines)) + '% នៃឃ្លា មានពាក្យជួនជាមួយឃ្លាផ្សេង។');
+    var mk = Object.keys(agg.meters);
+    line(mk.length ? 'រង្វាស់ដែលឃើញ៖ ' + mk.map(function (k) { return k + ' (' + km(agg.meters[k]) + ')'; }).join(', ') + '។'
+                   : 'គ្មានគំរូណាត្រូវនឹងរង្វាស់បុរាណទេ៖ គំរូរបស់អ្នកជាទម្រង់សេរី។');
+    var tk = Object.keys(agg.tech).sort(function (a, b) { return agg.tech[b] - agg.tech[a]; });
+    if (tk.length) line('ក្បាច់សូរដែលប្រើញឹកញាប់៖ ' + tk.map(function (k) { return k + ' (' + km(agg.tech[k]) + ' ឃ្លា)'; }).join(', ') + '។');
+    Object.keys(agg.byTempo).forEach(function (t) {
+      var a = agg.byTempo[t].sort(function (x, y) { return x - y; });
+      if (a.length) line(LyricEngine.tempo[t].name + '៖ ឃ្លាមធ្យម ' + km(a[Math.floor(a.length / 2)]) + ' ព្យាង្គ (' + km(a.length) + ' គំរូ)។', true);
+    });
+    line('ម៉ាស៊ីនរៀនតែរូបរាងពីគំរូ (ព្យាង្គ ជួន ក្បាច់សូរ)។ អត្ថន័យ និងហេតុផល «ហេតុអ្វីល្អ» គឺជាចំណេះដឹងរបស់អ្នក៖ វាត្រូវបានរក្សាទុកសម្រាប់អ្នកនិពន្ធ និងកម្មវិធីបង្កើតទំនុកច្រៀង។', true);
+  }
+
+  document.getElementById('lib-form').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var st = document.getElementById('lib-status'), btn = document.getElementById('lib-save');
+    var title = document.getElementById('lib-title').value.trim(), text = document.getElementById('lib-text').value.trim();
+    if (!title || !text) { st.textContent = 'សូមបញ្ចូលចំណងជើង និងអត្ថបទ។'; return; }
+    if (!db) { st.textContent = 'មិនអាចរក្សាទុកបានទេ៖ សូមចូលគណនី ហើយបើកទំព័រនេះម្តងទៀត។'; return; }
+    btn.disabled = true; st.textContent = 'កំពុងរក្សាទុក…';
+    try {
+      await db.collection('library').add({ title: title, author: document.getElementById('lib-author').value.trim(),
+        kind: document.getElementById('lib-kind').value, tempo: tempoSel.value, text: text,
+        story: document.getElementById('lib-story').value.trim(), why: document.getElementById('lib-why').value.trim(),
+        at: new Date().toISOString(), by: me || '' });
+      this.reset(); st.textContent = 'បានបញ្ចូលទៅបណ្ណាល័យ។';
+    } catch (x) { st.textContent = 'រក្សាទុកមិនបាន (' + (x && x.code || 'error') + ')។ សូមព្យាយាមម្តងទៀត។'; }
+    btn.disabled = false;
+  });
+
+  /* ---------- Generator pack: principles + corrections + good examples, as one prompt text ---------- */
+  function buildPack() {
+    var L = [];
+    L.push('# ការណែនាំសម្រាប់តែងទំនុកច្រៀងខ្មែរ (Lyric Engine)');
+    L.push('');
+    L.push('## ច្បាប់កំពូល');
+    L.push('Rhyme is Rhythm, Rhythm is Soul. Meaning triumphs over rigid shells.');
+    L.push('- អត្ថន័យ សាច់រឿង និងអារម្មណ៍ពិត មកមុនគេ។ ព្យាង្គ និងពាក្យជួន គ្រាន់តែជាគ្រឿងផ្សំ។');
+    L.push('- កុំទាញពាក្យមកជួន ធ្វើឲ្យប្រយោគខ្វះន័យ។ កុំប្រើពាក្យបំពេញជើងកាព្យ (ឧ. រលែក ពិសក្តៅ ត្រួតត្រាល់ ថ្ងៃឡើង)។');
+    L.push('- កុំនិយាយរឿងដែលគេដឹងហើយ (ឧ. យប់ងងឹត)។ ឃ្លានីមួយៗគួរមានមនុស្ស ទង្វើ ទីកន្លែង ឬអារម្មណ៍ពិត។');
+    L.push('- ពាក្យជួន៖ អឃោសៈជួនជាមួយអឃោសៈ ឃោសៈជួនជាមួយឃោសៈ លើកលែងស្រៈ ួ ៀ ឿ។');
+    L.push('- រាប់ព្យាង្គតាមសំឡេងនិយាយពិត (ប្រវត្តិសាស្ត្រ = ៣)។');
+    var learnedDocs = docs.filter(function (d) { return d.status === 'learned' && d.summary; });
+    if (learnedDocs.length) {
+      L.push(''); L.push('## ច្បាប់ដែលបានរៀនពីឯកសារមេរៀន');
+      learnedDocs.forEach(function (d) { L.push('- ' + d.title + (d.source ? ' (' + d.source + ')' : '') + '៖ ' + d.summary); });
+    }
+    var fixed = lessons.filter(function (l) { return l.after; }), open = lessons.filter(function (l) { return !l.after; });
+    if (fixed.length) {
+      L.push(''); L.push('## កំហុសដែលធ្លាប់ធ្វើ និងរបៀបកែ (កុំធ្វើដដែលទៀត)');
+      fixed.forEach(function (l) {
+        L.push('- ខុស៖ ' + l.before); L.push('  ត្រូវ៖ ' + l.after);
+        var why = (l.reasons || []).map(function (r) { return reasonName[r] || r; }).concat(l.note ? [l.note] : []).join(' · ');
+        if (why) L.push('  ហេតុផល៖ ' + why);
+      });
+    }
+    if (open.length) {
+      L.push(''); L.push('## ឃ្លាដែលអ្នកនិពន្ធបដិសេធ (កុំប្រើឃ្លាបែបនេះ)');
+      open.forEach(function (l) { L.push('- ' + l.before + ((l.reasons || []).length || l.note ? ' (' + (l.reasons || []).map(function (r) { return reasonName[r] || r; }).concat(l.note ? [l.note] : []).join(' · ') + ')' : '')); });
+    }
+    if (library.length) {
+      L.push(''); L.push('## គំរូល្អៗ (រៀនពីរបៀប មិនមែនចម្លងពាក្យ)');
+      library.forEach(function (e) {
+        var st = study(e.text);
+        L.push(''); L.push('### ' + e.title + (e.author ? ' (' + e.author + ')' : ''));
+        var info = [KIND[e.kind] || '', e.tempo && LyricEngine.tempo[e.tempo] ? LyricEngine.tempo[e.tempo].name : '', st.meter || 'ទម្រង់សេរី',
+                    (st.min === st.max ? km(st.min) : km(st.min) + '–' + km(st.max)) + ' ព្យាង្គ/ឃ្លា'].filter(Boolean).join(' · ');
+        L.push(info);
+        if (e.story) L.push('សាច់រឿង៖ ' + e.story);
+        if (e.why) L.push('ល្អព្រោះ៖ ' + e.why);
+        L.push(e.text);
+      });
+    }
+    L.push(''); L.push('មុនផ្តល់ចម្លើយ៖ អានឃ្លានីមួយៗម្តងទៀត ហើយសួរថា «តើឃ្លានេះមានន័យ និងអារម្មណ៍ពិតទេ ឬគ្រាន់តែជួន?»');
+    return L.join('\n');
+  }
+  function renderPack() { document.getElementById('pack-text').textContent = buildPack(); }
+  document.getElementById('pack-copy').addEventListener('click', function () {
+    var st = document.getElementById('pack-status'), text = buildPack();
+    function fallback() {
+      var pre = document.getElementById('pack-text'); pre.parentNode.open = true;
+      var r = document.createRange(); r.selectNodeContents(pre); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      st.textContent = 'ចម្លងដោយស្វ័យប្រវត្តិមិនបាន៖ អត្ថបទត្រូវបានជ្រើសរួច សូមចុច Ctrl+C។';
+    }
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('no clipboard');
+      navigator.clipboard.writeText(text).then(function () { st.textContent = 'បានចម្លង។'; }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  /* ---------- Hand-off to part 2 (music): copy the lyrics labelled for Box 2 ---------- */
+  document.getElementById('to-music').addEventListener('click', function () {
+    var st = document.getElementById('to-music-status'), text = LyricEngine.songSheet(box.value);
+    function fallback() { box.focus(); box.select(); st.textContent = 'ចម្លងដោយស្វ័យប្រវត្តិមិនបាន៖ សូមចុច Ctrl+C។'; }
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('no clipboard');
+      navigator.clipboard.writeText(text).then(function () {
+        st.textContent = 'បានចម្លង ' + km((text.match(/^\[/gm) || []).length) + ' ផ្នែក៖ បិទភ្ជាប់ក្នុង Box 2 នៃផ្នែកតន្ត្រី។';
+      }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  /* ---------- Lesson documents: teaching material the engine is taught from ---------- */
+  var docs = [], assets = null;
+  var DOCKIND = { textbook: 'សៀវភៅ', lesson: 'មេរៀនសាលា', notes: 'កំណត់ត្រា', article: 'អត្ថបទ' };
+  function renderDocs() {
+    var ul = document.getElementById('docs'); ul.textContent = '';
+    document.getElementById('doc-empty').hidden = docs.length > 0;
+    var learned = docs.filter(function (d) { return d.status === 'learned'; }).length;
+    document.getElementById('doc-heading').textContent = docs.length ? 'ឯកសារ (' + km(docs.length) + ' · បានរៀន ' + km(learned) + ')' : 'ឯកសារ';
+    docs.forEach(function (d) {
+      var li = document.createElement('li'); li.className = 'entry';
+      var head = document.createElement('div'); head.className = 'head';
+      var h = document.createElement('h3'); h.textContent = d.title;
+      var right = document.createElement('div'); right.className = 'actions';
+      var chip = document.createElement('span'); chip.className = 'chip-s' + (d.status === 'learned' ? ' done' : '');
+      chip.textContent = d.status === 'learned' ? 'បានរៀន' : 'រង់ចាំម៉ាស៊ីនរៀន';
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'fix'; del.textContent = 'លុប';
+      del.setAttribute('aria-label', 'លុបឯកសារ៖ ' + d.title);
+      del.addEventListener('click', async function () { del.disabled = true; try { await db.collection('docs').doc(d.id).delete(); } catch (x) { del.disabled = false; } });
+      right.append(chip, del); head.append(h, right);
+      var meta = document.createElement('p'); meta.className = 'meta';
+      meta.textContent = [d.source, DOCKIND[d.kind] || ''].filter(Boolean).join(' · ');
+      li.append(head, meta);
+      if (d.summary) { var sm = document.createElement('p'); sm.className = 'why'; sm.textContent = 'អ្វីដែលម៉ាស៊ីនបានរៀន៖ ' + d.summary; li.appendChild(sm); }
+      var links = document.createElement('p'); links.className = 'meta';
+      if (/^https:\/\//.test(d.link)) { var a = document.createElement('a'); a.href = d.link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'បើកតំណ'; links.appendChild(a); }
+      if (d.asset) { if (links.childNodes.length) links.appendChild(document.createTextNode(' · ')); var f = document.createElement('a'); f.href = '/_blob/' + d.asset; f.target = '_blank'; f.rel = 'noopener'; f.textContent = 'បើកឯកសារ' + (d.fileName ? ' (' + d.fileName + ')' : ''); links.appendChild(f); }
+      if (links.childNodes.length) li.appendChild(links);
+      if (d.text) { var det = document.createElement('details'); var su = document.createElement('summary'); su.textContent = 'មើលអត្ថបទ'; var pre = document.createElement('pre'); pre.textContent = d.text; det.append(su, pre); li.appendChild(det); }
+      ul.appendChild(li);
+    });
+  }
+  document.getElementById('doc-form').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var st = document.getElementById('doc-status'), btn = document.getElementById('doc-save');
+    var title = document.getElementById('doc-title').value.trim(), text = document.getElementById('doc-text').value.trim();
+    var file = document.getElementById('doc-file').files[0], link = document.getElementById('doc-link').value.trim();
+    if (!title) { st.textContent = 'សូមបញ្ចូលចំណងជើង។'; return; }
+    if (!text && !file && !link) { st.textContent = 'សូមបិទភ្ជាប់អត្ថបទ ភ្ជាប់ឯកសារ ឬដាក់តំណ។'; return; }
+    if (link && !/^https:\/\//.test(link)) { st.textContent = 'តំណត្រូវចាប់ផ្តើមដោយ https://'; return; }
+    if (!db) { st.textContent = 'មិនអាចរក្សាទុកបានទេ៖ សូមចូលគណនី ហើយបើកទំព័រនេះម្តងទៀត។'; return; }
+    btn.disabled = true; st.textContent = 'កំពុងរក្សាទុក…';
+    try {
+      var assetId = '', fileName = '';
+      if (file) {
+        if (!assets) throw { code: 'no_upload' };
+        var type = file.type || (/\.md$/i.test(file.name) ? 'text/markdown' : 'text/plain');
+        var up = await assets.upload(file, { type: type });
+        assetId = up.id; fileName = file.name;
+      }
+      await db.collection('docs').add({ title: title, source: document.getElementById('doc-source').value.trim(),
+        kind: document.getElementById('doc-kind').value, link: link, text: text, asset: assetId, fileName: fileName,
+        status: 'pending', summary: '', at: new Date().toISOString(), by: me || '' });
+      this.reset(); st.textContent = 'បានបញ្ចូល។ ឯកសារនេះនឹងត្រូវបានរៀននៅពេល Claude អានវា។';
+    } catch (x) {
+      st.textContent = x && x.code === 'no_upload' ? 'ការភ្ជាប់ឯកសារមិនអាចប្រើបាននៅទីនេះ៖ សូមបិទភ្ជាប់អត្ថបទជំនួសវិញ។'
+                                                  : 'រក្សាទុកមិនបាន (' + (x && x.code || 'error') + ')។ សូមព្យាយាមម្តងទៀត។';
+    }
+    btn.disabled = false;
+  });
+
+  /* What a new writer sees: the write box and its results only. The library, documents and generator
+     pack teach the engine; they appear when the trainer tools are switched on (remembered per browser). */
+  var pageRoot = document.querySelector('.le-page'), tToggle = document.getElementById('trainer-toggle');
+  function setTrainer(on) {
+    pageRoot.classList.toggle('trainer-on', on);
+    tToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    tToggle.textContent = on ? 'លាក់ឧបករណ៍បង្រៀនម៉ាស៊ីន' : 'ឧបករណ៍បង្រៀនម៉ាស៊ីន';
+    try { localStorage.setItem('trainer', on ? '1' : ''); } catch (e) {}
+    if (!on && location.hash && location.hash !== '#write') location.hash = '#write';
+  }
+  var trainerSaved = false; try { trainerSaved = localStorage.getItem('trainer') === '1'; } catch (e) {}
+  setTrainer(trainerSaved || location.hash === '#library' || location.hash === '#docs');
+  tToggle.addEventListener('click', function () { setTrainer(!pageRoot.classList.contains('trainer-on')); });
+
+  function route() {
+    var view = location.hash === '#library' ? 'library' : location.hash === '#docs' ? 'docs' : 'write';
+    if (view !== 'write' && !pageRoot.classList.contains('trainer-on')) setTrainer(true);
+    ['write', 'library', 'docs'].forEach(function (v) {
+      var el = document.getElementById('view-' + v), on = v === view;
+      el.hidden = !on; el.style.display = on ? 'contents' : 'none';
+      document.getElementById('nav-' + v).setAttribute('aria-current', on ? 'page' : 'false');
+    });
+  }
+  window.addEventListener('hashchange', route); route(); renderPack();
+
+  box.addEventListener('input', function () { if (openLine >= 0) { openLine = -1; panel.hidden = true; } render(); try { localStorage.setItem('lyrics', box.value); } catch (e) {} });
+  render();
+})();
+</script>

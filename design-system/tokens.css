@@ -1,0 +1,92 @@
+/* Lyric Engine — generated from tokens.json */
+:root, [data-theme="light"] {
+  --background: #fafafa;
+  --color: #000000;
+  --color-primary: #0088ff;
+  --color-primary-light: #42a7ff;
+  --color-code-block: #ebf9ff;
+  --color-select-border: rgb(211, 211, 211);
+  --color-checkbox-background: rgb(211, 211, 211);
+  --color-checkbox-tick: #ffffff;
+  --color-copy-success-background: #c1ffc6;
+  --color-copy-success-border: rgb(0, 255, 0);
+  --color-copy-fail-background: #ffcbcb;
+  --color-copy-fail-border: rgb(255, 0, 0);
+  --shadow-focus: 0 0 0 3px #0088ff;
+}
+[data-theme="dark"] {
+  --background: #0e0e0e;
+  --color: rgb(190, 190, 190);
+  --color-primary: #0088ff;
+  --color-primary-light: #42a7ff;
+  --color-code-block: #101315;
+  --color-select-border: rgb(54, 54, 54);
+  --color-checkbox-background: rgb(51, 51, 51);
+  --color-checkbox-tick: #ffffff;
+  --color-copy-success-background: #001f00;
+  --color-copy-success-border: rgb(0, 255, 0);
+  --color-copy-fail-background: #1f0000;
+  --color-copy-fail-border: rgb(255, 0, 0);
+  --shadow-focus: 0 0 0 3px #0088ff;
+}
+[data-theme="accessible-light"] {
+  --background: #fafafa;
+  --color: #000000;
+  --color-primary: #0066cc;
+  --color-primary-light: #004c99;
+  --color-code-block: #ebf9ff;
+  --color-select-border: #767676;
+  --color-checkbox-background: #767676;
+  --color-checkbox-tick: #ffffff;
+  --color-copy-success-background: #c1ffc6;
+  --color-copy-success-border: #1a7f37;
+  --color-copy-fail-background: #ffcbcb;
+  --color-copy-fail-border: #c62828;
+  --shadow-focus: 0 0 0 3px #0066cc;
+}
+[data-theme="accessible-dark"] {
+  --background: #0e0e0e;
+  --color: #d6d6d6;
+  --color-primary: #4da3ff;
+  --color-primary-light: #8cc4ff;
+  --color-code-block: #101315;
+  --color-select-border: #808080;
+  --color-checkbox-background: #808080;
+  --color-checkbox-tick: #0e0e0e;
+  --color-copy-success-background: #001f00;
+  --color-copy-success-border: #3fb950;
+  --color-copy-fail-background: #1f0000;
+  --color-copy-fail-border: #ff6b6b;
+  --shadow-focus: 0 0 0 3px #4da3ff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --background: #0e0e0e;
+    --color: rgb(190, 190, 190);
+    --color-primary: #0088ff;
+    --color-primary-light: #42a7ff;
+    --color-code-block: #101315;
+    --color-select-border: rgb(54, 54, 54);
+    --color-checkbox-background: rgb(51, 51, 51);
+    --color-checkbox-tick: #ffffff;
+    --color-copy-success-background: #001f00;
+    --color-copy-success-border: rgb(0, 255, 0);
+    --color-copy-fail-background: #1f0000;
+    --color-copy-fail-border: rgb(255, 0, 0);
+    --shadow-focus: 0 0 0 3px #0088ff;
+  }
+}
+:root {
+  --space-control: 5px;
+  --space-section: 20px;
+  --space-page: 25px;
+  --space-indent: 40px;
+  --size-toggle: 20px;
+  --width-main: 1250px;
+  --radius-pill: 999em;
+  --radius-checkbox: 3px;
+  --radius-round: 100%;
+  --font-sans: 'Segoe UI', Arial, 'Kantumruy Pro', Helvetica, sans-serif;
+  --font-mono: Consolas, monospace;
+  --font-khmer: 'Kantumruy Pro', 'Segoe UI', sans-serif;
+}

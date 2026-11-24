@@ -1,0 +1,11 @@
+{
+  // Serves the Lyric Engine design system (sample page, tokens, components) as a static site.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dara",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./design-system"
+  },
+  // Required by `wrangler preview`, which the Cloudflare build runs; empty keeps the top-level settings.
+  "previews": {}
+}

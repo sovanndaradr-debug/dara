@@ -1,0 +1,33 @@
+name: Tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  lyric-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Engine rules
+        run: node lyric-engine/test.js
+      - name: 13-poem corpus
+        run: node lyric-engine/corpus.test.js
+      - name: Page carries the same engine
+        run: |
+          node -e "const fs=require('fs');const h=fs.readFileSync('lyric-engine/index.html','utf8');const e=fs.readFileSync('lyric-engine/engine.js','utf8');const i=h.indexOf('<script>\n')+9;if(h.slice(i,h.indexOf('</script>',i))!==e){console.error('lyric-engine/index.html embeds an older engine.js');process.exit(1)}"
+  vo5-studio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: vo5-studio/requirements.txt
+      - run: pip install -r vo5-studio/requirements.txt
+      - name: Music part (fake AceData server, no credits)
+        run: python -m unittest vo5-studio/test_live_suno.py
