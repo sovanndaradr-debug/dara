@@ -21,3 +21,18 @@ python vo5-studio/live_suno.py          # serves on 127.0.0.1:7860
 To serve other people, set `VO5_HOST=0.0.0.0` **and** `VO5_AUTH=user:password`. The app refuses a public address without a login, because every press of «ផលិតសំឡេង» spends credits.
 
 Tests (fake Suno server, stand-in pipeline): `python -m unittest vo5-studio/test_live_suno.py`
+
+## vo5.app: slim UI layer (`vo5_app_slim.css`)
+
+A CSS-only layer for the live vo5.app (Gradio 6.31) that makes it tidier without changing any behaviour:
+one 32px button height, 8px corners, single-layer cards with 1px lines, a 260px banner, thin "start with" chips,
+shorter song rows, and the content using the space the closed left sidebar used to reserve (332px).
+
+Add it after the app's own CSS. Gradio 6 takes CSS in `launch()`:
+
+```python
+slim = open("vo5_app_slim.css", encoding="utf-8").read()
+demo.launch(css=EXISTING_CSS + "\n" + slim)
+```
+
+It was checked by injecting it into https://vo5.app/ in a local browser at 1440px and 390px (no horizontal scroll).

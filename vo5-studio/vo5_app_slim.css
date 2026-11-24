@@ -1,0 +1,134 @@
+/* ==========================================================================
+   VO5 Studio Pro (vo5.app): slim, orderly UI layer
+   Add after the app's own CSS (Gradio 6: launch(css=...) or a <style> in head).
+   Only visual: no element is removed, no handler changes.
+
+   Rules of this layer (one source of truth for sizes):
+     buttons   32px high (28px small), 8px corners, weight 600, 1px border
+     cards     1 layer, 1px border, 12px corners, no heavy shadow
+     spacing   8 / 12 / 16 / 24 px only
+   ========================================================================== */
+
+:root {
+  --vo5-h: 32px;            /* every button */
+  --vo5-h-sm: 28px;         /* small / secondary buttons */
+  --vo5-r: 8px;             /* button corners */
+  --vo5-r-card: 12px;       /* card corners */
+  --vo5-line: rgba(9, 9, 11, 0.10);
+  --vo5-line-strong: rgba(9, 9, 11, 0.18);
+  --vo5-muted: #52525b;
+  --vo5-surface: #ffffff;
+  --vo5-hover: rgba(9, 9, 11, 0.04);
+  --vo5-ink: #09090b;
+}
+.dark, [data-theme="dark"] {
+  --vo5-line: rgba(255, 255, 255, 0.10);
+  --vo5-line-strong: rgba(255, 255, 255, 0.20);
+  --vo5-muted: #a1a1aa;
+  --vo5-surface: #111113;
+  --vo5-hover: rgba(255, 255, 255, 0.06);
+  --vo5-ink: #fafafa;
+}
+
+/* ---- 1. Layout: give the content the space the empty sidebar reserved ---- */
+/* The app reserves 332px for #vo5-left-sidebar whenever it is "open", but that sidebar is drawn
+   0px wide (the visible menu lives outside .gradio-container), so the content sat 350px from it. */
+@media (min-width: 1025px) {
+  html body .gradio-container .wrap.sidebar-parent:has(#vo5-left-sidebar.open) { padding-left: 16px !important; }
+}
+.gradio-container main.contain { padding: 16px 24px !important; }
+#vo5-main-tabs { max-width: 1040px; margin: 0 auto; }
+
+/* ---- 2. Buttons: one height, one corner, one weight ---- */
+.gradio-container button:not(.vo5-home-dot):not(.vo5-home-dotbtn):not([role="tab"]) {
+  min-height: var(--vo5-h);
+  border-radius: var(--vo5-r);
+  font-weight: 600;
+  box-shadow: none;
+}
+.gradio-container button.lg, .gradio-container button.md { height: var(--vo5-h); padding: 0 14px; font-size: 13.5px; }
+.gradio-container button.sm { height: var(--vo5-h-sm); min-height: var(--vo5-h-sm); padding: 0 10px; font-size: 12.5px; }
+.gradio-container button.secondary {
+  background: transparent; border: 1px solid var(--vo5-line-strong); color: var(--vo5-ink);
+}
+.gradio-container button.secondary:hover { background: var(--vo5-hover); }
+
+/* header: account pill, theme and icon buttons in the same 32px row */
+#vo5-top-account-pill { height: 28px; padding: 0 10px; font-size: 12.5px; font-weight: 500; }
+.vo5-top-navbar-row { min-height: 48px; gap: 8px; align-items: center; }
+.theme-toggle-btn { height: var(--vo5-h) !important; min-width: var(--vo5-h); }
+
+/* ---- 3. Home banner: shorter, calmer ---- */
+/* the app's console mode makes the banner clamp(340px, 34vw, 480px) tall */
+html #vo5-tab-home #vo5-home-promo .vo5-home-slide { min-height: 260px !important; border-radius: var(--vo5-r-card) !important; }
+/* the title rendered dark on the dark banner (hard to read): keep banner text light */
+#vo5-tab-home #vo5-home-promo .vo5-home-slide-body h1,
+#vo5-tab-home #vo5-home-promo .vo5-home-slide-body h2 { color: #ffffff !important; }
+#vo5-tab-home #vo5-home-promo .vo5-home-slide-body p { color: rgba(255, 255, 255, 0.86) !important; }
+html #vo5-tab-home #vo5-home-promo .vo5-home-slide-body h1,
+html #vo5-tab-home #vo5-home-promo .vo5-home-slide-body h2 { font-size: clamp(22px, 3vw, 30px) !important; line-height: 1.35 !important; margin: 4px 0 !important; }
+#vo5-tab-home #vo5-home-promo .vo5-home-cta {
+  height: var(--vo5-h) !important; padding: 0 14px !important; border-radius: var(--vo5-r) !important;
+  font-weight: 600 !important; font-size: 13px !important;
+}
+#vo5-home-promo .vo5-home-tag { font-size: 11px !important; padding: 2px 8px !important; }
+
+/* ---- 4. "Start with…" options: thin chips, not grey slabs ---- */
+.vo5-start-row { gap: 8px !important; }
+#vo5-tab-home .vo5-start-opt {
+  justify-content: center !important; gap: 1px !important;
+  min-height: 0 !important; height: auto !important; padding: 7px 12px !important;
+  background: var(--vo5-surface) !important; border: 1px solid var(--vo5-line) !important;
+  border-radius: var(--vo5-r) !important; font-size: 13.5px !important; line-height: 1.45 !important;
+  text-align: left !important; box-shadow: none !important;
+}
+#vo5-tab-home .vo5-start-opt b { font-size: 13.5px !important; }
+#vo5-tab-home .vo5-start-opt small { font-size: 12px !important; color: var(--vo5-muted) !important; }
+#vo5-tab-home .vo5-start-opt:hover { border-color: var(--vo5-line-strong) !important; background: var(--vo5-hover) !important; }
+
+/* ---- 5. Create box: one card instead of three nested layers ---- */
+#vo5-home-box { box-shadow: none !important; border: 1px solid var(--vo5-line) !important; border-radius: var(--vo5-r-card) !important; padding: 8px !important; background: var(--vo5-surface) !important; }
+#vo5-home-box #vo5-home-box { border: 0 !important; padding: 0 !important; }
+#vo5-home-box .form, #vo5-home-prompt, #vo5-home-prompt textarea { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+#vo5-home-prompt textarea { font-size: 15px !important; padding: 8px 10px !important; min-height: 64px !important; }
+#vo5-home-actions { gap: 8px !important; padding: 0 4px 4px !important; }
+#vo5-tab-home #vo5-home-actions button {
+  height: var(--vo5-h) !important; padding: 0 14px !important; border-radius: var(--vo5-r) !important;
+  font-weight: 600 !important; font-size: 13.5px !important;
+}
+
+/* ---- 6. Song shelves: lighter rows, smaller play buttons, link-style "more" ---- */
+#vo5-tab-home .vo5-home-shelf { border: 1px solid var(--vo5-line) !important; border-radius: var(--vo5-r-card) !important; padding: 12px !important; box-shadow: none !important; }
+.vo5-home-shelf-head { gap: 10px !important; margin-bottom: 4px !important; }
+.vo5-home-shelf-art, .vo5-home-shelf-art-img { width: 48px !important; height: 48px !important; border-radius: var(--vo5-r) !important; }
+.vo5-home-shelf-title { font-size: 17px !important; }
+.vo5-home-shelf-sub { font-size: 12.5px !important; color: var(--vo5-muted) !important; }
+#vo5-tab-home .vo5-home-row { padding: 6px !important; gap: 10px !important; border-radius: var(--vo5-r) !important; }
+/* title on its own line; artist and meta share the second line */
+#vo5-tab-home .vo5-home-row-text { flex-direction: row !important; flex-wrap: wrap !important; column-gap: 6px !important; row-gap: 1px !important; }
+#vo5-tab-home .vo5-home-row-title { flex: 0 0 100% !important; }
+#vo5-tab-home .vo5-home-row-artist::after { content: " ·"; }
+#vo5-tab-home .vo5-home-row:hover { background: var(--vo5-hover) !important; }
+.vo5-home-row-art, .vo5-home-row-img, .vo5-home-row-play { width: 40px !important; height: 40px !important; min-width: 40px !important; border-radius: var(--vo5-r) !important; }
+.vo5-home-row-title { font-size: 14px !important; }
+.vo5-home-row-artist, .vo5-home-row-meta { font-size: 12px !important; color: var(--vo5-muted) !important; }
+#vo5-tab-home .vo5-home-more {
+  height: var(--vo5-h-sm) !important; border: 0 !important; background: transparent !important;
+  color: var(--vo5-muted) !important; font-weight: 600 !important; font-size: 13px !important;
+}
+#vo5-tab-home .vo5-home-more:hover { color: var(--vo5-ink) !important; background: var(--vo5-hover) !important; }
+
+/* ---- 7. Panels and accordions: thin 1px lines everywhere ---- */
+.gradio-container .studio-card { box-shadow: none !important; border: 1px solid var(--vo5-line) !important; border-radius: var(--vo5-r-card) !important; padding: 12px !important; }
+#vo5-top-spotify-showcase-acc, .gradio-container .accordion, .gradio-container details {
+  border-width: 1px !important; border-color: var(--vo5-line) !important; box-shadow: none !important;
+}
+.gradio-container .block { box-shadow: none; }
+
+/* ---- 8. Phones: tighter gutters, chips stack, banner shorter ---- */
+@media (max-width: 640px) {
+  .gradio-container main.contain { padding: 12px !important; }
+  html #vo5-tab-home #vo5-home-promo .vo5-home-slide { min-height: 200px !important; }
+  .vo5-start-row { flex-direction: column !important; }
+  .vo5-start-opt { width: 100% !important; }
+}
